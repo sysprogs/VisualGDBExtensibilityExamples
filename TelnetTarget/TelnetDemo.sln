@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelnetDemo", "TelnetDemo\TelnetDemo.csproj", "{35B25C55-615B-4584-965A-54B04636582D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelnetTarget", "TelnetTarget\TelnetTarget.csproj", "{A77344AD-0602-4CF9-9CBB-E038F6981EA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualGDBExtensibility", "..\..\..\sysprogs\VisualGDB\VisualGDBExtensibility\VisualGDBExtensibility.csproj", "{A3730282-30BD-4286-B98D-A2E40DACD708}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{35B25C55-615B-4584-965A-54B04636582D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35B25C55-615B-4584-965A-54B04636582D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35B25C55-615B-4584-965A-54B04636582D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35B25C55-615B-4584-965A-54B04636582D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A77344AD-0602-4CF9-9CBB-E038F6981EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A77344AD-0602-4CF9-9CBB-E038F6981EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A77344AD-0602-4CF9-9CBB-E038F6981EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A77344AD-0602-4CF9-9CBB-E038F6981EA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3730282-30BD-4286-B98D-A2E40DACD708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3730282-30BD-4286-B98D-A2E40DACD708}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3730282-30BD-4286-B98D-A2E40DACD708}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3730282-30BD-4286-B98D-A2E40DACD708}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

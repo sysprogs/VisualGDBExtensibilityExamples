@@ -1,0 +1,47 @@
+﻿<Window x:Class="TelnetTarget.NewTargetWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TelnetTarget"
+             mc:Ignorable="d" 
+             SizeToContent="WidthAndHeight"
+            Title="New telnet connection...">
+    <Window.Resources>
+        <local:TelnetParameters x:Key="sampleParameters" Host="linuxbox" Port="1234" UserName="user" Password="pass"/>
+    </Window.Resources>
+    <Grid d:DataContext="{StaticResource sampleParameters}" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Host name: " Grid.Column="0" Grid.Row="0"/>
+        <TextBox Text="{Binding Host}" Grid.Column="1" Grid.Row="0" MinWidth="100"/>
+
+        <TextBlock Text="Port: " Grid.Column="0" Grid.Row="1"/>
+        <TextBox Text="{Binding Port}" Grid.Column="1" Grid.Row="1" MinWidth="100"/>
+
+        <TextBlock Text="User name: " Grid.Column="0" Grid.Row="2"/>
+        <TextBox Text="{Binding UserName}" Grid.Column="1" Grid.Row="2" MinWidth="100"/>
+
+        <TextBlock Text="Password: " Grid.Column="0" Grid.Row="3"/>
+        <TextBox Text="{Binding Password}" Grid.Column="1" Grid.Row="3" MinWidth="100"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.ColumnSpan="2" Margin="0 5 0 0">
+            <Button MinWidth="80" Margin="5" Click="OK_Click">
+                <TextBlock Text="OK" Margin="5 0 5 0"/>
+            </Button>
+            <Button MinWidth="80" Margin="5" Click="Cancel_Click">
+                <TextBlock Text="Cancel" Margin="5 0 5 0"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
