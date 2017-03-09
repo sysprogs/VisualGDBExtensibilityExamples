@@ -8,7 +8,7 @@ using VisualGDBExtensibility;
 
 namespace TelnetDemo
 {
-    class VirtualFile : TransferredFile
+    class VirtualFile : QueuedUploadedFile
     {
         byte[] _Contents;
 
@@ -32,6 +32,7 @@ namespace TelnetDemo
     {
         static void Main(string[] args)
         {
+            //TODO: change the parameters below to match your test configuration
             var target = new TelnetTarget.TelnetTarget(new TelnetTarget.TelnetParameters
             {
                 Host = "192.168.0.153",
@@ -39,19 +40,20 @@ namespace TelnetDemo
                 Password = "test"
             });
 
+            //This should create a file called '/tmp/file.txt' on the target.
+            target.SendFiles("/tmp", new[] { new VirtualFile("file.txt", "Hello, world\n") });
+
             ManualResetEvent done = new ManualResetEvent(false);
 
             int? code = null;
-
-            var cmd = target.CreateRemoteCommand("stat", "--printf %U \"/tmp\"", "", null, VisualGDBExtensibility.CommandFlags.None);
+            //Running 'cat /tmp/file.txt' should output the contents of the file uploaded in the previous step.
+            var cmd = target.CreateRemoteCommand("cat", "\"/tmp/file.txt\"", "", null, VisualGDBExtensibility.CommandFlags.None);
             cmd.CommandExited += (c, r) => { code = r; done.Set(); };
             cmd.TextReceived += (c, t, type) => Console.Write(t);
             cmd.Start();
             done.WaitOne();
             if (code.HasValue)
                 Console.WriteLine("Command exited with code " + code.Value);
-
-            target.SendFiles("/tmp", new[] { new VirtualFile("file.txt", "Hello, world") });
         }
     }
 }
