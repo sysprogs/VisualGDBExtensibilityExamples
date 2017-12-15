@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="SampleCodeAnnotationProvider.StackUsageAnnotation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SampleCodeAnnotationProvider"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="5 0 5 0">
+        <ToggleButton Cursor="Hand" x:Name="button">
+            <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                    <ContentPresenter/>
+                </ControlTemplate>
+            </ToggleButton.Template>
+            <StackPanel Orientation="Horizontal" ToolTip="Click to see details">
+                <TextBlock Text="stack: " VerticalAlignment="Center" Foreground="DarkGray"/>
+                <Border Width="200" VerticalAlignment="Stretch" BorderBrush="DarkGray" BorderThickness="1" Background="LightGoldenrodYellow">
+                    <Rectangle Width="{Binding GaugeWidth}" Fill="DarkBlue" HorizontalAlignment="Left"/>
+                </Border>
+            </StackPanel>
+        </ToggleButton>
+        <Popup IsOpen="{Binding IsChecked, ElementName=button}" PopupAnimation="Slide" AllowsTransparency="True"
+                      Placement="Top"  PlacementTarget="{Binding ElementName=button}" StaysOpen="False">
+            <Border Background="White" BorderBrush="Black" BorderThickness="1">
+                <StackPanel Margin="5 20 5 20">
+                    <TextBlock Text="{Binding Text}"/>
+                    <TextBlock Text="TODO: place your custom controls here" Foreground="DarkGray" Margin="0 10 0 0"/>
+                    <Button Content="Close" Margin="0 10 0 5" HorizontalAlignment="Center" Click="Close_Click" PreviewMouseDown="Button_PreviewMouseDown"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>
