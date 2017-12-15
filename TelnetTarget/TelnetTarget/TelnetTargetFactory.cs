@@ -26,6 +26,8 @@ namespace TelnetTarget
 
         public string NewTargetHint => "Create a new telnet target";
 
+        public string TargetTypeHint => "Telnet-based target";
+
         public string UniqueID => "com.sysprogs.targets.telnet";
 
         public CustomTargetConnectionParameters CreateAndRememberNewConnectionInteractively()
