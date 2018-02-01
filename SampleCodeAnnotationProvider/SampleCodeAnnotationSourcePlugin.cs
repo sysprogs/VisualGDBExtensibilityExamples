@@ -33,6 +33,8 @@ namespace SampleCodeAnnotationProvider
 
                 List<CodeAnnotationRecord> results = new List<CodeAnnotationRecord>();
                 Regex rgStackUsageLine = new Regex("([^:]+):([0-9]+):[0-9]*:([^\t]*)\t([0-9]+)\t.*");
+                Regex rgFunctionName = new Regex(@"[^\(\)]+ ([a-zA-Z0-9_]+) *\(");
+
                 foreach (var line in File.ReadAllLines(suFile))
                 {
                     var m = rgStackUsageLine.Match(line);
@@ -46,10 +48,29 @@ namespace SampleCodeAnnotationProvider
                         if (StringComparer.InvariantCultureIgnoreCase.Compare(file, Path.GetFileName(filePath)) != 0)
                             continue;
 
+                        var matchingSym = _Project.SymbolDependencies.AllSymbols.FirstOrDefault(sym => sym.Name == functionName);
+                        if (matchingSym == null)
+                        {
+                            var m2 = rgFunctionName.Match(functionName);
+                            if (m2.Success)
+                            {
+                                string nameOnly = m2.Groups[1].Value;
+                                matchingSym = _Project.SymbolDependencies.AllSymbols.FirstOrDefault(sym => sym.Name == nameOnly);
+                            }
+                        }
+
+                        if (matchingSym != null)
+                        {
+                            //This demonstrates how to look up symbols using their addresses
+                            var sym2 = _Project.SymbolDependencies.LookupSymbolByAddress(matchingSym.Address);
+                            if (sym2 != matchingSym)
+                                throw new Exception("Symbol lookup is not working");
+                        }
+
                         results.Add(new CodeAnnotationRecord
                         {
                             Location = new SysprogsDevTools.SourceCoordinates(lineNum - 1, 0),
-                            Annotation = new  SampleCodeAnnotation(functionName, depth),
+                            Annotation = new  SampleCodeAnnotation(functionName, depth, matchingSym),
                         });
                     }
                 }

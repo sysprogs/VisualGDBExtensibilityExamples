@@ -27,17 +27,20 @@ namespace SampleCodeAnnotationProvider
 
         public class Data
         {
-            public Data(int depth, string text)
+            public Data(int depth, string text, VisualGDB.Backend.Annotations.Public.ISymbolWithReferences symbol)
             {
                 GaugeWidth = depth * 5;
                 if (GaugeWidth > 200)
                     GaugeWidth = 200;
 
                 Text = text;
+                CalledFunctions = symbol?.References?.Select(s => s.Name)?.ToArray();
             }
 
             public int GaugeWidth { get; set; }
             public string Text { get; set; }
+
+            public string[] CalledFunctions { get; }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

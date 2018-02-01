@@ -41,6 +41,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="VisualGDBCore">
+      <HintPath>C:\Program Files (x86)\Sysprogs\VisualGDB\VisualGDBCore.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -50,16 +53,6 @@
     <Compile Include="StackUsageAnnotation.xaml.cs">
       <DependentUpon>StackUsageAnnotation.xaml</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\sysprogs\SysprogsDevTools\SysprogsDevTools.csproj">
-      <Project>{2a7cd480-324b-48b9-9559-228c63de16f6}</Project>
-      <Name>SysprogsDevTools</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sysprogs\VisualGDB\VisualGDB\VisualGDBCore.csproj">
-      <Project>{0cb42df0-3f61-41a4-8679-2d8a1a89afa2}</Project>
-      <Name>VisualGDBCore</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="StackUsageAnnotation.xaml">

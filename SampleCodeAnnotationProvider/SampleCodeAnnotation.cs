@@ -12,12 +12,15 @@ namespace SampleCodeAnnotationProvider
     {
         private string _FunctionName;
         private int _Depth;
+        private ISymbolWithReferences _Symbol;
 
-        public SampleCodeAnnotation(string functionName, int depth)
+        public SampleCodeAnnotation(string functionName, int depth, ISymbolWithReferences matchingSym)
         {
             _FunctionName = functionName;
             _Depth = depth;
+            _Symbol = matchingSym;
         }
+
 
         public object TypeKey => typeof(SampleCodeAnnotation);
 
@@ -30,7 +33,7 @@ namespace SampleCodeAnnotationProvider
 
         public System.Windows.FrameworkElement CreateInstance()
         {
-            return new StackUsageAnnotation { DataContext = new StackUsageAnnotation.Data(_Depth, $"{_FunctionName} uses {_Depth} bytes of stack") };
+            return new StackUsageAnnotation { DataContext = new StackUsageAnnotation.Data(_Depth, $"{_FunctionName} uses {_Depth} bytes of stack", _Symbol) };
         }
     }
 }

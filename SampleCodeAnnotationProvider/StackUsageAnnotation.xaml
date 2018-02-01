@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SampleCodeAnnotationProvider"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="30" d:DesignWidth="300">
     <Grid Margin="5 0 5 0">
         <ToggleButton Cursor="Hand" x:Name="button">
             <ToggleButton.Template>
@@ -25,6 +25,7 @@
             <Border Background="White" BorderBrush="Black" BorderThickness="1">
                 <StackPanel Margin="5 20 5 20">
                     <TextBlock Text="{Binding Text}"/>
+                    <ListBox ItemsSource="{Binding CalledFunctions}"/>
                     <TextBlock Text="TODO: place your custom controls here" Foreground="DarkGray" Margin="0 10 0 0"/>
                     <Button Content="Close" Margin="0 10 0 5" HorizontalAlignment="Center" Click="Close_Click" PreviewMouseDown="Button_PreviewMouseDown"/>
                 </StackPanel>
