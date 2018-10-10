@@ -13,8 +13,9 @@ namespace ARMStackUsageAnalyzer
     {
         public int Depth;
         public int SavedStackDepth;
+        public bool FramePointedChangedUnpredictably;
 
-        public StackAnalyzerContext Clone() => new StackAnalyzerContext { Depth = Depth, SavedStackDepth = SavedStackDepth };
+        public StackAnalyzerContext Clone() => new StackAnalyzerContext { Depth = Depth, SavedStackDepth = SavedStackDepth, FramePointedChangedUnpredictably = FramePointedChangedUnpredictably };
 
         public override string ToString()
         {
@@ -57,6 +58,7 @@ namespace ARMStackUsageAnalyzer
         MovesSavedStackPointer = 1024,
         RegisterJump = 2048,
         JumpTargetKnown = 4096,
+        ChangesFramePointerUnpredictably = 8192,
 
         WarningMask = ChangesStackPointerUnpredictably | UnrecognizableInstruction | UnpredictableJump | RegisterJump,
     }
@@ -143,7 +145,13 @@ namespace ARMStackUsageAnalyzer
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.SavesStackPointerWithDelta))
                         ctx.SavedStackDepth = ctx.Depth + effects.StackDelta;
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.RestoresStackPointer))
+                    {
                         ctx.Depth = ctx.SavedStackDepth;
+                        if (ctx.FramePointedChangedUnpredictably)
+                            result.Flags |= FunctionStackUsageFlags.HasDynamicStack;
+                    }
+                    if (effects.HasAnyEffect(StackRelatedInstructionEffect.ChangesFramePointerUnpredictably))
+                        ctx.FramePointedChangedUnpredictably = true;
 
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.MovesSavedStackPointer))
                         ctx.SavedStackDepth += effects.StackDelta;
@@ -163,7 +171,7 @@ namespace ARMStackUsageAnalyzer
                             result.CalledFunctions.Add(new CalledFunctionStackUsage(insn.Address, effects.JumpTarget, ctx.Depth, false));
                     }
 
-                    optionalLogger?.LogLine($"[{ctx.Depth,6}] 0x{insn.Address:x8} {insn} => {effects}");
+                    optionalLogger?.ReportInstructionStatus(ctx.Depth, insn, effects.ToString());
 
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.ReturnFromCall))
                     {
@@ -343,24 +351,33 @@ namespace ARMStackUsageAnalyzer
                     }
                 } 
             }
-            else if (insn.Opcode == "add" || insn.Opcode == "sub" || insn.Opcode == "adds" || insn.Opcode == "subs")
+            else if (insn.Opcode == "add" || insn.Opcode == "sub" || insn.Opcode == "adds" || insn.Opcode == "subs" || insn.Opcode == "addw" || insn.Opcode == "subw" || insn.Opcode == "add.w" || insn.Opcode == "sub.w")
             {
                 int sign = insn.Opcode.StartsWith("sub") ? 1 : -1;
 
-                string arg = TakeFirstArgument(ref remainingArgs);
-                if (arg == "sp")
+                string targetRegister = TakeFirstArgument(ref remainingArgs);
+                string sourceRegister = TakeFirstArgument(ref remainingArgs);
+                if (remainingArgs == "")
                 {
+                    remainingArgs = sourceRegister;
+                    sourceRegister = targetRegister;
+                }
 
+                if (targetRegister == "sp")
+                {
                     var delta = ParseImmediateValue(remainingArgs);
                     if (delta.HasValue)
-                        return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.MovesStackPointer, StackDelta = sign * delta.Value };
-                    else
-                        return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ChangesStackPointerUnpredictably };
+                    {
+                        if (targetRegister == "sp")
+                            return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.MovesStackPointer, StackDelta = sign * delta.Value };
+                        else if (targetRegister == "r7")
+                            return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.SavesStackPointerWithDelta, StackDelta = sign * delta.Value };
+                    }
+                    return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ChangesStackPointerUnpredictably };
                 }
-                else if (arg == "r7")
+                else if (targetRegister == "r7")
                 {
-                    arg = TakeFirstArgument(ref remainingArgs);
-                    if (arg == "sp")
+                    if (sourceRegister == "sp")
                     {
                         var delta = ParseImmediateValue(remainingArgs);
                         if (delta.HasValue)
@@ -368,10 +385,12 @@ namespace ARMStackUsageAnalyzer
                     }
                     else
                     {
-                        var delta = ParseImmediateValue(arg);
+                        var delta = ParseImmediateValue(remainingArgs);
                         if (delta.HasValue)
                             return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.MovesSavedStackPointer, StackDelta = sign * delta.Value };
                     }
+
+                    return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ChangesFramePointerUnpredictably };
                 }
             }
             else if (insn.Opcode == "cbz" || insn.Opcode == "cbnz")
