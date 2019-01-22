@@ -172,6 +172,9 @@ namespace ARMStackUsageAnalyzer
                     {
                         if (effects.HasAnyEffect(StackRelatedInstructionEffect.JumpTargetKnown))
                             result.CalledFunctions.Add(new CalledFunctionStackUsage(insn.Address, effects.JumpTarget, ctx.Depth, false));
+
+                        if (_Host.IsNoreturnFunction(effects.JumpTarget))
+                            break;  //This call will never return
                     }
 
                     optionalLogger?.ReportInstructionStatus(ctx.Depth, insn, effects.ToString());
@@ -468,6 +471,11 @@ namespace ARMStackUsageAnalyzer
 
         public void Dispose()
         {
+        }
+
+        public bool IsNoreturnFunction(AnalyzedSymbol function, IStackAnalyzerLogger optionalLogger)
+        {
+            return false;
         }
     }
 
