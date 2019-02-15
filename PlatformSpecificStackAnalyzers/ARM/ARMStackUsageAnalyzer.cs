@@ -15,25 +15,14 @@ namespace ARMStackUsageAnalyzer
         public int SavedStackDepth;
         public bool FramePointedChangedUnpredictably;
 
-        ulong _LocalCallerAddressPlus1;
-
-        public ulong LocalCallerAddress
-        {
-            get => _LocalCallerAddressPlus1 - 1;
-            set
-            {
-                _LocalCallerAddressPlus1 = value + 1;
-            }
-        }
-
-        public bool HasLocalCallerAddress => _LocalCallerAddressPlus1 != 0;
+        public int EntryStackDepthForLocalCalls;
 
         public StackAnalyzerContext Clone() => new StackAnalyzerContext
         {
             Depth = Depth,
             SavedStackDepth = SavedStackDepth,
             FramePointedChangedUnpredictably = FramePointedChangedUnpredictably,
-            LocalCallerAddress = LocalCallerAddress,
+            EntryStackDepthForLocalCalls = EntryStackDepthForLocalCalls,
         };
 
         public override string ToString()
@@ -78,6 +67,7 @@ namespace ARMStackUsageAnalyzer
         RegisterJump = 2048,
         JumpTargetKnown = 4096,
         ChangesFramePointerUnpredictably = 8192,
+        JumpsViaLinkRegister = 16384,
 
         WarningMask = ChangesStackPointerUnpredictably | UnrecognizableInstruction | UnpredictableJump | RegisterJump,
     }
@@ -134,7 +124,7 @@ namespace ARMStackUsageAnalyzer
                 var path = codePaths.Dequeue();
                 var ctx = path.Context;
 
-                optionalLogger?.LogLine($"***Starting code path at 0x{path.Address:x8} with stack depth = {path.Context.Depth}" + (path.Context.HasLocalCallerAddress ? $" in a local subroutine returning to instruction after 0x{path.Context.LocalCallerAddress:x8}" : ""));
+                optionalLogger?.LogLine($"***Starting code path at 0x{path.Address:x8} with stack depth = {path.Context.Depth}" + (path.Context.EntryStackDepthForLocalCalls != 0 ? $" (local subroutine with a stack offset of {path.Context.EntryStackDepthForLocalCalls})" : ""));
 
                 foreach (var insn in _Host.TryReadInstructions(path.Address))
                 {
@@ -197,7 +187,7 @@ namespace ARMStackUsageAnalyzer
                                 //This is a local subroutine (e.g. used by __aeabi_dmul). Once it reaches the 'bx lr' instruction, it will get back to the next instruction after the current one.
                                 isLocalCall = true;
                                 var ctx2 = ctx.Clone();
-                                ctx2.LocalCallerAddress = insn.Address;
+                                ctx2.EntryStackDepthForLocalCalls = ctx2.Depth;
                                 codePaths.Enqueue(new PendingCodePath(effects.JumpTarget, ctx2));
                             }
                             else
@@ -212,17 +202,19 @@ namespace ARMStackUsageAnalyzer
 
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.ReturnFromCall))
                     {
-                        if (ctx.HasLocalCallerAddress)
+                        //End of path. This is either a return from the function, or a return from a local subroutine.
+                        if (ctx.EntryStackDepthForLocalCalls != 0 && effects.HasAnyEffect(StackRelatedInstructionEffect.JumpsViaLinkRegister))
                         {
-                            //This is the end of a local subroutine path. 'bx lr' will jump to an instruction after the calling instruction, that should have been analyzed already.
-                            //If we want to check that the stack offset after this path returns equals what it was before the call, we can try setting the current address to
-                            //ctx.LocalCallerAddress and skipping 1 instruction, but we don't do it currently to keep the logic manageably simple.
-                            break;
+                            if (ctx.Depth != ctx.EntryStackDepthForLocalCalls)
+                                result.AppendFlag(FunctionStackUsageFlags.HasStackImbalance, insn, optionalLogger);
+                        }
+                        else
+                        {
+                            if (ctx.Depth != 0)
+                                result.AppendFlag(FunctionStackUsageFlags.HasStackImbalance, insn, optionalLogger);
                         }
 
-                        if (ctx.Depth != 0)
-                            result.AppendFlag(FunctionStackUsageFlags.HasStackImbalance, insn, optionalLogger);
-                        break;  //End of path. Return from the function.                                               
+                        break;                                           
                     }
 
                     if (effects.HasAnyEffect(StackRelatedInstructionEffect.UnconditionalJump) && ctx.Depth == 0 && !function.ContainsAddress(effects.JumpTarget))
@@ -452,7 +444,7 @@ namespace ARMStackUsageAnalyzer
                 string arg = TakeFirstArgument(ref remainingArgs, ' ');
 
                 if (insn.Opcode == "bx" && arg == "lr")
-                    return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ReturnFromCall };
+                    return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ReturnFromCall | StackRelatedInstructionEffect.JumpsViaLinkRegister };
 
                 StackRelatedInstructionEffect effect = StackRelatedInstructionEffect.None;
 
