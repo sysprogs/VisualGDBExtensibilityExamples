@@ -182,7 +182,7 @@ namespace ARMStackUsageAnalyzer
                         bool isLocalCall = false;
                         if (effects.HasAnyEffect(StackRelatedInstructionEffect.JumpTargetKnown))
                         {
-                            if (function.ContainsAddress(insn.Address))
+                            if (function.ContainsAddress(effects.JumpTarget))
                             {
                                 //This is a local subroutine (e.g. used by __aeabi_dmul). Once it reaches the 'bx lr' instruction, it will get back to the next instruction after the current one.
                                 isLocalCall = true;
