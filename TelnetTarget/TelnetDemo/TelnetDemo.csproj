@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -45,15 +45,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\products\VisualGDB\VisualGDBExtensibility\VisualGDBExtensibility.csproj">
-      <Project>{a3730282-30bd-4286-b98d-a2e40dacd708}</Project>
-      <Name>VisualGDBExtensibility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TelnetTarget\TelnetTarget.csproj">
       <Project>{a77344ad-0602-4cf9-9cbb-e038f6981ea5}</Project>
       <Name>TelnetTarget</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="..\..\VisualGDBExtensibility.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
