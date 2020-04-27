@@ -221,7 +221,7 @@ namespace StackAndHeapLiveWatch
                 ulong chunkStart = Math.Max(uncheckedChunkStart, startOfCheckedArea);
                 int checkSize = Math.Min(checkChunkSize, (int)(lastKnownEndOfStack - chunkStart));
 
-                var data = _Engine.Memory.ReadMemory(chunkStart, checkChunkSize);
+                var data = _Engine.Memory.ReadMemory(chunkStart, checkSize);
                 if (!data.IsValid)
                     throw new Exception($"Failed to read stack memory (0x{startOfCheckedArea:x8}-0x{lastKnownEndOfStack})");
 
