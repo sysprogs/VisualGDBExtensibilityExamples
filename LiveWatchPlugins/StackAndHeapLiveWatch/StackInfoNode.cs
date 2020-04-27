@@ -34,10 +34,10 @@ namespace StackAndHeapLiveWatch
 
             try
             {
-                var endOfStackVariable = engine.Evaluator.TryLookupRawSymbolInfo("_estack") ?? engine.Evaluator.TryLookupRawSymbolInfo("__StackLimit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
+                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackLimit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
                 _StackEnd = endOfStackVariable.Address;
 
-                var reservedForStackVariable = engine.Evaluator.LookupVariable("ReservedForStack");
+                var reservedForStackVariable = engine.Symbols.LookupVariable("ReservedForStack");
                 if (reservedForStackVariable != null && reservedForStackVariable.Size != 0)
                 {
                     //Stack size is fixed. No need to monitor outside it.
@@ -46,10 +46,10 @@ namespace StackAndHeapLiveWatch
                 else
                 {
                     //Stack size is variable. Initially, it starts right after the 'end' symbol, but can be moved further as the heap grows.
-                    var endVariable = engine.Evaluator.TryLookupRawSymbolInfo("end") ?? throw new Exception("No 'end' symbol found");
-                    var heapEndVariableAddress = engine.Evaluator.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
+                    var endVariable = engine.Symbols.TryLookupRawSymbolInfo("end") ?? throw new Exception("No 'end' symbol found");
+                    var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
                     if (heapEndVariableAddress != 0)
-                        _HeapEndVariable = engine.LiveVariables.CreateLiveVariable(heapEndVariableAddress, 4);
+                        _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
 
                     _StackStart = endVariable.Address;
                     _StackOpposesGrowingHeap = true;
@@ -171,7 +171,7 @@ namespace StackAndHeapLiveWatch
                 else
                 {
                     int watchSize = Math.Min(_MaxBorderVariableSize, position);
-                    _BorderVariable = _Engine.LiveVariables.CreateLiveVariable(startOfCheckedArea + (uint)position - (uint)watchSize, watchSize);
+                    _BorderVariable = _Engine.Memory.CreateLiveVariable(startOfCheckedArea + (uint)position - (uint)watchSize, watchSize);
                 }
             }
 
@@ -221,7 +221,7 @@ namespace StackAndHeapLiveWatch
                 ulong chunkStart = Math.Max(uncheckedChunkStart, startOfCheckedArea);
                 int checkSize = Math.Min(checkChunkSize, (int)(lastKnownEndOfStack - chunkStart));
 
-                var data = _Engine.LiveVariables.ReadMemory(chunkStart, checkChunkSize);
+                var data = _Engine.Memory.ReadMemory(chunkStart, checkChunkSize);
                 if (!data.IsValid)
                     throw new Exception($"Failed to read stack memory (0x{startOfCheckedArea:x8}-0x{lastKnownEndOfStack})");
 

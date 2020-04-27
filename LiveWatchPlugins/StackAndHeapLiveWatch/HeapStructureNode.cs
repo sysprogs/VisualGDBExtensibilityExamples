@@ -149,7 +149,7 @@ namespace StackAndHeapLiveWatch
             Name = "Heap";
             Capabilities = LiveWatchCapabilities.CanHaveChildren | LiveWatchCapabilities.DoNotHighlightChangedValue;
 
-            var fixedSizeHeap = engine.Evaluator.TryLookupRawSymbolInfo("FixedSizeHeap");
+            var fixedSizeHeap = engine.Symbols.TryLookupRawSymbolInfo("FixedSizeHeap");
             if (fixedSizeHeap.HasValue)
             {
                 _HeapStart = fixedSizeHeap.Value.Address;
@@ -157,16 +157,16 @@ namespace StackAndHeapLiveWatch
             }
             else
             {
-                _HeapStart = engine.Evaluator.TryLookupRawSymbolInfo("end")?.Address ?? 0;
+                _HeapStart = engine.Symbols.TryLookupRawSymbolInfo("end")?.Address ?? 0;
 
-                var heapEndVariableAddress = engine.Evaluator.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
+                var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
                 if (heapEndVariableAddress != 0)
-                    _HeapEndVariable = engine.LiveVariables.CreateLiveVariable(heapEndVariableAddress, 4);
+                    _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
             }
 
-            var freeListVariable = engine.Evaluator.TryLookupRawSymbolInfo("__malloc_free_list");   //May not have debug symbols, so we whould use the raw symbol API
+            var freeListVariable = engine.Symbols.TryLookupRawSymbolInfo("__malloc_free_list");   //May not have debug symbols, so we whould use the raw symbol API
             if (freeListVariable.HasValue)
-                _FreeListVariable = engine.LiveVariables.CreateLiveVariable(freeListVariable.Value.Address, freeListVariable.Value.Size);
+                _FreeListVariable = engine.Memory.CreateLiveVariable(freeListVariable.Value.Address, freeListVariable.Value.Size);
         }
 
         public override void SetSuspendState(LiveWatchNodeSuspendState state)
@@ -316,7 +316,7 @@ namespace StackAndHeapLiveWatch
                 }
 
                 if (_LiveHeap?.Address != _HeapStart || _LiveHeap?.Size != (int)(heapEnd - _HeapStart))
-                    _LiveHeap = _Engine.LiveVariables.CreateLiveVariable(_HeapStart, (int)(heapEnd - _HeapStart));
+                    _LiveHeap = _Engine.Memory.CreateLiveVariable(_HeapStart, (int)(heapEnd - _HeapStart));
 
                 _HeapContents = _LiveHeap.GetValue();
                 _ParsedHeapContents = ParseHeapContents(_HeapContents.Value, (uint)_FreeListVariable.GetValue().ToUlong());
