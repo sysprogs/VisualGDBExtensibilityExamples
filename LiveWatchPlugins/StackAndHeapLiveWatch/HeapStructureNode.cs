@@ -141,6 +141,7 @@ namespace StackAndHeapLiveWatch
         private ILiveWatchNode[] _Children;
 
         ulong _HeapStart, _FixedHeapEnd;
+        bool _HasMalloc;
 
         public HeapStructureNode(ILiveWatchEngine engine)
             : base("$heap")
@@ -158,15 +159,17 @@ namespace StackAndHeapLiveWatch
             else
             {
                 _HeapStart = engine.Symbols.TryLookupRawSymbolInfo("end")?.Address ?? 0;
-
-                var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
-                if (heapEndVariableAddress != 0)
-                    _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
             }
+
+            var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
+            if (heapEndVariableAddress != 0)
+                _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
 
             var freeListVariable = engine.Symbols.TryLookupRawSymbolInfo("__malloc_free_list");   //May not have debug symbols, so we whould use the raw symbol API
             if (freeListVariable.HasValue)
                 _FreeListVariable = engine.Memory.CreateLiveVariable(freeListVariable.Value.Address, freeListVariable.Value.Size);
+
+            _HasMalloc = engine.Symbols.TryLookupRawSymbolInfo("malloc").HasValue;
         }
 
         public override void SetSuspendState(LiveWatchNodeSuspendState state)
@@ -299,7 +302,7 @@ namespace StackAndHeapLiveWatch
         public override LiveWatchNodeState UpdateState(LiveWatchUpdateContext context)
         {
             if (_HeapStart == 0 || _FreeListVariable == null)
-                return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = "Heap analysis only works with newlib-nano" };
+                return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = _HasMalloc ? "Heap analysis only works with newlib-nano" : "The code does not use malloc()"};
 
             var result = new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Heap };
 
@@ -326,6 +329,7 @@ namespace StackAndHeapLiveWatch
                     _Children = new ILiveWatchNode[]
                     {
                         _HeapEndVariable == null ? null : new HeapMetricNode(this, ".dynamic.size", "Dynamic Heap Area Size", st => st.TotalAreaSize),
+                        _FixedHeapEnd == 0 ? null :  new HeapMetricNode(this, ".reserved.size", "Heap Size Limit", st => (int)(_FixedHeapEnd - _HeapStart)),
                         new HeapMetricNode(this, ".used.size", "Allocated Bytes", st => st.TotalUsedSize),
                         new HeapMetricNode(this, ".used.count", "Allocated Blocks", st => st.TotalUsedBlocks),
                         new HeapMetricNode(this, ".used.max", "Max. Allocation Size", st => st.MaxUsedBlock),
