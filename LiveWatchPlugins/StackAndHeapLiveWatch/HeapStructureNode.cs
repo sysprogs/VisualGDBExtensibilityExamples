@@ -27,7 +27,7 @@ namespace StackAndHeapLiveWatch
                 Name = name;
                 _Callback = callback;
                 _HeapNode = heapNode;
-                SelectedFormatter = _HeapNode._Engine.CreateDefaultFormatter(ScalarVariableType.SInt32);
+                SelectedFormatter = _HeapNode._Engine.GetDefaultFormatter(ScalarVariableType.SInt32);
             }
 
             public override LiveWatchNodeState UpdateState(LiveWatchUpdateContext context)

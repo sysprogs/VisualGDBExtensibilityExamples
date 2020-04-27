@@ -25,7 +25,7 @@ namespace StackAndHeapLiveWatch
             : base("$stack")
         {
             _Engine = engine;
-            SelectedFormatter = engine.CreateDefaultFormatter(ScalarVariableType.SInt32);
+            SelectedFormatter = engine.GetDefaultFormatter(ScalarVariableType.SInt32);
             _UnusedStackFillPatern = engine.Settings.UnusedStackFillPattern;
             _MaxBorderVariableSize = engine.Settings.StackBorderWatchSize;
 
@@ -46,7 +46,9 @@ namespace StackAndHeapLiveWatch
                 else
                 {
                     //Stack size is variable. Initially, it starts right after the 'end' symbol, but can be moved further as the heap grows.
-                    var endVariable = engine.Symbols.TryLookupRawSymbolInfo("end") ?? throw new Exception("No 'end' symbol found");
+                    var endVariable = engine.Symbols.TryLookupRawSymbolInfo("end") ??
+                        engine.Symbols.TryLookupRawSymbolInfo("_ebss") ??
+                        engine.Symbols.TryLookupRawSymbolInfo("_edata") ?? throw new Exception("Could not find 'end', '_ebss' or '_edata'");
                     var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
                     if (heapEndVariableAddress != 0)
                         _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
@@ -103,7 +105,7 @@ namespace StackAndHeapLiveWatch
             {
                 _StackNode = stackInfo;
                 Name = "Distance to end of heap";
-                SelectedFormatter = stackInfo._Engine.CreateDefaultFormatter(ScalarVariableType.SInt32);
+                SelectedFormatter = stackInfo._Engine.GetDefaultFormatter(ScalarVariableType.SInt32);
             }
 
             public override LiveWatchNodeState UpdateState(LiveWatchUpdateContext context)
