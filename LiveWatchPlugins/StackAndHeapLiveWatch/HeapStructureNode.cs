@@ -175,12 +175,15 @@ namespace StackAndHeapLiveWatch
         public override void SetSuspendState(LiveWatchNodeSuspendState state)
         {
             base.SetSuspendState(state);
+
+            bool suspend = state.SuspendRegularUpdates || !state.IsExpanded;
+
             if (_HeapEndVariable != null)
-                _HeapEndVariable.SuspendUpdating = state.SuspendRegularUpdates;
+                _HeapEndVariable.SuspendUpdating = suspend;
             if (_FreeListVariable != null)
-                _FreeListVariable.SuspendUpdating = state.SuspendRegularUpdates;
+                _FreeListVariable.SuspendUpdating = suspend;
             if (_LiveHeap != null)
-                _LiveHeap.SuspendUpdating = state.SuspendRegularUpdates;
+                _LiveHeap.SuspendUpdating = suspend;
         }
 
         struct HeapBlockInfo
@@ -229,7 +232,9 @@ namespace StackAndHeapLiveWatch
             ParsedHeapState result = new ParsedHeapState { TotalAreaSize = contents.Length };
 
             ulong heapAddress = _HeapStart;
-            int offset = 0;
+            int backPadding = (int)(heapAddress & 7), frontPadding = (8 - backPadding) & 7;
+
+            int offset = frontPadding;
             Dictionary<int, int> blockNumbersByOffset = new Dictionary<int, int>();
 
             while (offset <= (contents.Length - HeapBlockHeaderSize))
@@ -252,8 +257,8 @@ namespace StackAndHeapLiveWatch
 
             result.Blocks = blocks.ToArray();
 
-            if (offset != contents.Length)
-                result.Error = $"Unexpected last block address (0x{_HeapStart + (uint)offset} instead of 0x{_HeapStart + (uint)contents.Length})";
+            if (offset != (contents.Length - backPadding))
+                result.Error = $"Unexpected last block address (0x{_HeapStart + (uint)offset:x8} instead of 0x{_HeapStart + (uint)contents.Length:x8})";
             else
             {
                 for (uint freeBlock = freeListHead; freeBlock != 0; freeBlock = GetNextFreeBlock(contents, freeBlock))
