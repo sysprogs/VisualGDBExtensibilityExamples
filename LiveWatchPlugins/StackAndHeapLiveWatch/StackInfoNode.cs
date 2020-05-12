@@ -65,7 +65,7 @@ namespace StackAndHeapLiveWatch
 
         public override void Dispose()
         {
-            _HeapEndVariable.Dispose();
+            _HeapEndVariable?.Dispose();
             _BorderVariable?.Dispose();
             base.Dispose();
         }

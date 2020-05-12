@@ -223,7 +223,7 @@ namespace StackAndHeapLiveWatch
             _HeapEndVariable?.Dispose();
         }
 
-        ParsedHeapState ParseHeapContents(byte[] contents, uint freeListHead)
+        ParsedHeapState ParseHeapContents(byte[] contents, uint freeListHead, int alignment)
         {
             List<HeapBlockInfo> blocks = new List<HeapBlockInfo>();
             if (contents == null)
@@ -232,7 +232,7 @@ namespace StackAndHeapLiveWatch
             ParsedHeapState result = new ParsedHeapState { TotalAreaSize = contents.Length };
 
             ulong heapAddress = _HeapStart;
-            int backPadding = (int)(heapAddress & 7), frontPadding = (8 - backPadding) & 7;
+            int backPadding = (int)(heapAddress & ((uint)alignment - 1)), frontPadding = (alignment - backPadding) & (alignment - 1);
 
             int offset = frontPadding;
             Dictionary<int, int> blockNumbersByOffset = new Dictionary<int, int>();
@@ -327,7 +327,7 @@ namespace StackAndHeapLiveWatch
                     _LiveHeap = _Engine.Memory.CreateLiveVariable(_HeapStart, (int)(heapEnd - _HeapStart));
 
                 _HeapContents = _LiveHeap.GetValue();
-                _ParsedHeapContents = ParseHeapContents(_HeapContents.Value, (uint)_FreeListVariable.GetValue().ToUlong());
+                _ParsedHeapContents = ParseHeapContents(_HeapContents.Value, (uint)_FreeListVariable.GetValue().ToUlong(), 4);
 
                 if (_Children == null)
                 {
@@ -346,7 +346,13 @@ namespace StackAndHeapLiveWatch
                 }
 
                 result.NewChildren = _Children;
-                result.Value = $"{_ParsedHeapContents.TotalUsedSize} bytes allocated";
+                if (_ParsedHeapContents.Error != null)
+                {
+                    result.Value = _ParsedHeapContents.Error;
+                    result.Icon = LiveWatchNodeIcon.Error;
+                }
+                else
+                    result.Value = $"{_ParsedHeapContents.TotalUsedSize} bytes allocated";
             }
             else
                 result.Value = "(expand heap node to see details)";
