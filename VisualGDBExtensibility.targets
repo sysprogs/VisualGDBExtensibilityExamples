@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-	<VisualGDBExtensibilityProjectFile>$(MSBuildThisFileDirectory)..\sysprogs\products\VisualGDB\VisualGDBExtensibility\VisualGDBExtensibility.csproj</VisualGDBExtensibilityProjectFile>
+	<VisualGDBExtensibilityProjectFile>$(MSBuildThisFileDirectory)..\..\..\products\VisualGDB\VisualGDBExtensibility\VisualGDBExtensibility.csproj</VisualGDBExtensibilityProjectFile>
   </PropertyGroup>
   <ItemGroup Condition="Exists('$(VisualGDBExtensibilityProjectFile)')">
     <ProjectReference Include="$(VisualGDBExtensibilityProjectFile)" >
