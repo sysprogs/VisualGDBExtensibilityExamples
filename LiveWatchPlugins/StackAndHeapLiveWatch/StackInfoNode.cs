@@ -34,11 +34,16 @@ namespace StackAndHeapLiveWatch
 
             try
             {
-                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackLimit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
+                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackLimit") ?? engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
                 _StackEnd = endOfStackVariable.Address;
 
                 var reservedForStackVariable = engine.Symbols.LookupVariable("ReservedForStack");
-                if (reservedForStackVariable != null && reservedForStackVariable.Size != 0)
+                if (endOfStackVariable.Name == "CSTACK$$Limit")
+                {
+                    var startOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Base") ?? throw new Exception("No 'CSTACK$$Base' symbol found.");
+                    _StackStart = startOfStackVariable.Address;
+                }
+                else if (reservedForStackVariable != null && reservedForStackVariable.Size != 0)
                 {
                     //Stack size is fixed. No need to monitor outside it.
                     _StackStart = _StackEnd - (uint)reservedForStackVariable.Size;
@@ -218,7 +223,7 @@ namespace StackAndHeapLiveWatch
             const int checkChunkSize = 2048;
             int markerBytes = 0;
 
-            for (ulong uncheckedChunkStart = lastKnownEndOfStack - checkChunkSize; uncheckedChunkStart >= startOfCheckedArea; uncheckedChunkStart -= checkChunkSize)
+            for (ulong uncheckedChunkStart = Math.Max(lastKnownEndOfStack - checkChunkSize, startOfCheckedArea); uncheckedChunkStart >= startOfCheckedArea; uncheckedChunkStart -= checkChunkSize)
             {
                 ulong chunkStart = Math.Max(uncheckedChunkStart, startOfCheckedArea);
                 int checkSize = Math.Min(checkChunkSize, (int)(lastKnownEndOfStack - chunkStart));
@@ -245,7 +250,7 @@ namespace StackAndHeapLiveWatch
                 _Engine.ReportConfigurationError(LiveWatchConfigurationError.UnusedStackNotFilledWithPattern);
 
             RawValue = new LiveVariableValue(DateTime.Now, LiveVariableValue.OutOfScheduleGeneration, BitConverter.GetBytes(estimatedStackSize));
-            return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = _PatternEverFound ? "Stack overflow detected!" : $"Unused stack is not filled with 0x{_UnusedStackFillPatern}" };
+            return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = _PatternEverFound ? "Stack overflow detected!" : $"Unused stack is not filled with 0x{_UnusedStackFillPatern:x8}" };
         }
 
     }

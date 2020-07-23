@@ -33,7 +33,9 @@ namespace StackAndHeapLiveWatch
             {
                 if (_Nodes == null)
                 {
-                    _Nodes = new ILiveWatchNode[] { new StackInfoNode(_Engine), new HeapStructureNode(_Engine) };
+                    bool isIAR = _Engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit").HasValue || _Engine.Symbols.TryLookupRawSymbolInfo("HEAP$$Limit").HasValue;
+
+                    _Nodes = new ILiveWatchNode[] { new StackInfoNode(_Engine), !isIAR ? (ILiveWatchNode)new HeapStructureNode(_Engine) : new IARHeapStructureNode(_Engine) };
                 }
 
                 return _Nodes;

@@ -276,7 +276,7 @@ namespace StackAndHeapLiveWatch
                 }
             }
 
-            foreach(var block in result.Blocks)
+            foreach (var block in result.Blocks)
             {
                 if (block.IsAllocated)
                 {
@@ -307,7 +307,7 @@ namespace StackAndHeapLiveWatch
         public override LiveWatchNodeState UpdateState(LiveWatchUpdateContext context)
         {
             if (_HeapStart == 0 || _FreeListVariable == null)
-                return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = _HasMalloc ? "Heap analysis only works with newlib-nano" : "The code does not use malloc()"};
+                return new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Error, Value = _HasMalloc ? "Heap analysis only works with newlib-nano" : "The code does not use malloc()" };
 
             var result = new LiveWatchNodeState { Icon = LiveWatchNodeIcon.Heap };
 
