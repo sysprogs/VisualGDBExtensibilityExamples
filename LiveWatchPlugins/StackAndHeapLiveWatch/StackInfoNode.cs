@@ -34,7 +34,7 @@ namespace StackAndHeapLiveWatch
 
             try
             {
-                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackLimit") ?? engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
+                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackTop") ?? engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
                 _StackEnd = endOfStackVariable.Address;
 
                 var reservedForStackVariable = engine.Symbols.LookupVariable("ReservedForStack");
@@ -51,9 +51,10 @@ namespace StackAndHeapLiveWatch
                 else
                 {
                     //Stack size is variable. Initially, it starts right after the 'end' symbol, but can be moved further as the heap grows.
-                    var endVariable = engine.Symbols.TryLookupRawSymbolInfo("end") ??
+                    var endVariable = engine.Symbols.TryLookupRawSymbolInfo("__StackLimit") ??
+                        engine.Symbols.TryLookupRawSymbolInfo("end") ??
                         engine.Symbols.TryLookupRawSymbolInfo("_ebss") ??
-                        engine.Symbols.TryLookupRawSymbolInfo("_edata") ?? throw new Exception("Could not find 'end', '_ebss' or '_edata'");
+                        engine.Symbols.TryLookupRawSymbolInfo("_edata") ?? throw new Exception("Could not find '__StackLimit', 'end', '_ebss' or '_edata'");
                     var heapEndVariableAddress = engine.Symbols.FindSymbolsContainingString("heap_end").SingleOrDefault().Address;
                     if (heapEndVariableAddress != 0)
                         _HeapEndVariable = engine.Memory.CreateLiveVariable(heapEndVariableAddress, 4);
