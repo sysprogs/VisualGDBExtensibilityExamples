@@ -410,6 +410,12 @@ namespace ARMStackUsageAnalyzer
                         else if (targetRegister == "r7")
                             return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.SavesStackPointerWithDelta, StackDelta = sign * delta.Value };
                     }
+
+                    //This might be a case of moving the stack pointer by a large amount on a device that doesn't support extended 'add' instructions (e.g. Cortex-M0).
+                    //GCC would then store the move value as an immediate value, load it indirectly into a temporary register, and then add its value to $sp.
+                    //It may also use shifting instructions to optimize the stored value.
+                    //Supporting this case would involve handling the 'ldr' instructions and maintaining a map of recently loaded registers.
+                    //You can call _Host.TryReadMemory(insn.Address + <PC-Relative Offset>, 4) to read the raw immediate value at the address used by the instruction.
                     return new StackRelatedInstructionEffects { Effects = StackRelatedInstructionEffect.ChangesStackPointerUnpredictably };
                 }
                 else if (targetRegister == "r7")
