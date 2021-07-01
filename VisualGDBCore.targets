@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+	<VisualGDBCoreProjectFile>$(MSBuildThisFileDirectory)..\..\..\products\VisualGDB\VisualGDBCore\VisualGDBCore.csproj</VisualGDBCoreProjectFile>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(VisualGDBCoreProjectFile)')">
+    <ProjectReference Include="$(VisualGDBCoreProjectFile)" >
+      <Project>{0CB42DF0-3F61-41A4-8679-2D8A1A89AFA2}</Project>
+      <Name>VisualGDBCore</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="(!Exists('$(VisualGDBCoreProjectFile)')) and ('$(VISUALGDB_DIR)' != '')">
+	<Reference Include="VisualGDBCore">
+	  <HintPath>$(VISUALGDB_DIR)\VisualGDBCore.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+  <ItemGroup Condition="(!Exists('$(VisualGDBCoreProjectFile)')) and ('$(VISUALGDB_DIR)' == '')">
+	<Reference Include="VisualGDBCore">
+	  <HintPath>C:\Program Files (x86)\Sysprogs\VisualGDB\VisualGDBCore.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+</Project>
