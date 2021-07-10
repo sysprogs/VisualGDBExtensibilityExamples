@@ -297,7 +297,6 @@ namespace TelnetTarget
                     using (var stream = new MemoryStream())
                     {
                         file.CopyTo(stream, tempBuffer, file.Size);
-                        cmd.SendInput(Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks));
                         var base64Data = Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks);
                         using(var reader = new StringReader(base64Data)) 
                         {
