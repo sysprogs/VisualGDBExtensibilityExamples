@@ -302,7 +302,7 @@ namespace TelnetTarget
                         {
                             int readed;
                             var dataChunk = new char[65 * 1024];
-                            while((readed = reader.Read(dataChunk, 0, dataChunk.Length)) > 0) 
+                            while((readed = reader.Read(dataChunk, 0, dataChunk.Length)) > 0 && !done.WaitOne(0)) 
                                 cmd.SendInput(new string(dataChunk, 0, readed));
                         }
                     }
