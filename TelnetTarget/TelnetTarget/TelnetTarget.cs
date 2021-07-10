@@ -150,6 +150,11 @@ namespace TelnetTarget
                     _Connection.WriteText($"echo {_BeginMarker} ; {_CommandLine} ; echo ; echo {_EndMarker}$?E\r\n");
                 _ReadThread.Start();
             }
+
+            public void SetReceiveTimeout(int timeout) 
+            {
+                _Connection.SetReceiveTimeout(timeout);
+            }
         }
 
         class TelnetConsole : TelnetCommand, IRemoteConsole
@@ -277,7 +282,7 @@ namespace TelnetTarget
                         done.Reset();
                         cmd.CommandExited += (s, code) => done.Set();
                         cmd.Start();
-                        done.WaitOne();
+                        done.WaitOne(_Parameters.Timeout);
                     }
                 }
 
@@ -285,6 +290,7 @@ namespace TelnetTarget
                 using (var cmd = CreateRemoteCommand($"base64 -d > \"{fullPath}\"", "", "", null, CommandFlags.None))
                 {
                     cmd.CommandExited += (s, code) => { done.Set(); exitCode = code ?? -1; };
+                    (cmd as TelnetCommand)?.SetReceiveTimeout(0);
                     done.Reset();
                     cmd.Start();
 
@@ -303,7 +309,8 @@ namespace TelnetTarget
                     }
 
                     cmd.SendInput("\r\n\x04");
-                    done.WaitOne();
+                    done.WaitOne(_Parameters.Timeout);
+                    (cmd as TelnetCommand)?.SetReceiveTimeout(_Parameters.Timeout);
                 }
 
                 if (exitCode == 0)
@@ -362,7 +369,7 @@ namespace TelnetTarget
 
                 cmd.Start();
 
-                done.WaitOne();
+                done.WaitOne(_Parameters.Timeout);
                 cmd.FlushPendingOutputEvents();
 
                 var data = Convert.FromBase64String(builtOutput.ToString());

@@ -156,6 +156,10 @@ namespace TelnetTarget
                 throw new Exception("Failed to login");
         }
 
+        public void SetReceiveTimeout(int timeout) {
+            _Client.ReceiveTimeout = timeout;
+        }
+
         public void Dispose()
         {
             try
