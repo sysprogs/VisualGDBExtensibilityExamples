@@ -8,7 +8,7 @@
              SizeToContent="WidthAndHeight"
             Title="New telnet connection...">
     <Window.Resources>
-        <local:TelnetParameters x:Key="sampleParameters" Host="linuxbox" Port="1234" UserName="user" Password="pass" Timeout="3000"/>
+        <local:TelnetParameters x:Key="sampleParameters" Host="linuxbox" Port="1234" UserName="user" Password="pass" Timeout="10000"/>
     </Window.Resources>
     <Grid d:DataContext="{StaticResource sampleParameters}" Margin="5">
         <Grid.RowDefinitions>
