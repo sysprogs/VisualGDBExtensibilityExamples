@@ -141,8 +141,18 @@ namespace TelnetTarget
 
         public TelnetConnection(TelnetParameters parameters)
         {
-            _Client = new TcpClient(parameters.Host, parameters.Port);
-            _Client.ReceiveTimeout = 10000;
+            _Client = new TcpClient();
+            _Client.ReceiveTimeout = parameters.Timeout;
+            _Client.SendTimeout = parameters.Timeout;
+
+            var result = _Client.BeginConnect(parameters.Host, parameters.Port, null, null);
+            bool success = result.AsyncWaitHandle.WaitOne(parameters.Timeout, true);
+            if(success) {
+                _Client.EndConnect(result);
+            } else {
+                _Client.Close();
+                throw new SocketException(10060); // Connection timed out.
+            }
 
             ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("login:", StringComparison.InvariantCultureIgnoreCase));
             WriteText(parameters.UserName + "\r\n");
@@ -161,7 +171,8 @@ namespace TelnetTarget
                 throw new Exception("Failed to login");
         }
 
-        public void SetReceiveTimeout(int timeout) {
+        public void SetReceiveTimeout(int timeout)
+        {
             _Client.ReceiveTimeout = timeout;
         }
 
