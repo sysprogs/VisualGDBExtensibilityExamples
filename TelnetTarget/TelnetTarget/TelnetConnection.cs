@@ -79,7 +79,9 @@ namespace TelnetTarget
         public string ReadTextUntilEventAndHandleTelnetCommands(Func<string, bool> endCondition)
         {
             StringBuilder result = new StringBuilder();
-            for (;;)
+            var stopWatch = Stopwatch.StartNew();
+            bool noTimeout() => _Client.ReceiveTimeout > 0 ? stopWatch.ElapsedMilliseconds <= _Client.ReceiveTimeout : true;
+            while(noTimeout())
             {
                 byte ch = ReadByteOrThrow();
                 if (ch == (byte)SpecialTelnetCommand.IAC)
@@ -115,6 +117,9 @@ namespace TelnetTarget
                 if (endCondition(result.ToString()))
                     break;
             }
+            stopWatch.Stop();
+            if(!noTimeout())
+                throw new SocketException((int)SocketError.TimedOut);
             return result.ToString();
         }
 
