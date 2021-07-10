@@ -151,7 +151,7 @@ namespace TelnetTarget
                 _Client.EndConnect(result);
             } else {
                 _Client.Close();
-                throw new SocketException(10060); // Connection timed out.
+                throw new SocketException((int)SocketError.TimedOut);
             }
 
             ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("login:", StringComparison.InvariantCultureIgnoreCase));
