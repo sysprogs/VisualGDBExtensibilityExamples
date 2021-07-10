@@ -8,10 +8,11 @@
              SizeToContent="WidthAndHeight"
             Title="New telnet connection...">
     <Window.Resources>
-        <local:TelnetParameters x:Key="sampleParameters" Host="linuxbox" Port="1234" UserName="user" Password="pass"/>
+        <local:TelnetParameters x:Key="sampleParameters" Host="linuxbox" Port="1234" UserName="user" Password="pass" Timeout="3000"/>
     </Window.Resources>
     <Grid d:DataContext="{StaticResource sampleParameters}" Margin="5">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -35,7 +36,10 @@
         <TextBlock Text="Password: " Grid.Column="0" Grid.Row="3"/>
         <TextBox Text="{Binding Password}" Grid.Column="1" Grid.Row="3" MinWidth="100"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.ColumnSpan="2" Margin="0 5 0 0">
+        <TextBlock Text="Timeout: " Grid.Column="0" Grid.Row="4"/>
+        <TextBox Text="{Binding Timeout}" Grid.Column="1" Grid.Row="4" MinWidth="100"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="5" Grid.ColumnSpan="2" Margin="0 5 0 0">
             <Button MinWidth="80" Margin="5" Click="OK_Click">
                 <TextBlock Text="OK" Margin="5 0 5 0"/>
             </Button>

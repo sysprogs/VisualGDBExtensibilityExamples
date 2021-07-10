@@ -296,6 +296,14 @@ namespace TelnetTarget
                     {
                         file.CopyTo(stream, tempBuffer, file.Size);
                         cmd.SendInput(Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks));
+                        var base64Data = Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks);
+                        using(var reader = new StringReader(base64Data)) 
+                        {
+                            int readed;
+                            var dataChunk = new char[65 * 1024];
+                            while((readed = reader.Read(dataChunk, 0, dataChunk.Length)) > 0) 
+                                cmd.SendInput(new string(dataChunk, 0, readed));
+                        }
                     }
 
                     cmd.SendInput("\r\n\x04");
