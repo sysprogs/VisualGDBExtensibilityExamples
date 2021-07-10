@@ -78,9 +78,7 @@ namespace TelnetTarget
                     else
                     {
                         //Read and discard everything before the start marker. These lines to not belong to our command.
-                        _Connection.SetTimeout(1000);
                         string text = _Connection.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith(_BeginMarker + "\r\n"));
-                        _Connection.SetTimeout(0);
                     }
 
                     //We don't know for sure where the command output ends and our end marker starts. Hence we have to guess it and immediately output everything that does not
@@ -211,10 +209,8 @@ namespace TelnetTarget
             string marker = $"com.sysprogs.tty:{Guid.NewGuid().ToString()}:";
             conn.WriteText($"echo {marker} ; tty ; sleep {int.MaxValue}\r\n");
 
-            conn.SetTimeout(2000);
             string prefix = conn.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("\r\n" + marker + "\r\n"));
             string tty = conn.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("\r\n")).TrimEnd();
-            conn.SetTimeout(0);
 
             return new TelnetConsole(this, conn, tty);
         }
