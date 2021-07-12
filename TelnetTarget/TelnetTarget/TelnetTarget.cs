@@ -205,7 +205,10 @@ namespace TelnetTarget
             if (!string.IsNullOrEmpty(directory))
                 commandLine = string.Format("cd \"{0}\" && {1}", directory, commandLine);
 
-            return new TelnetCommand(this, ProvideConnection(), commandLine);
+            var connection = ProvideConnection();
+            if ((flags & CommandFlags.EnableTerminalEmulation) != CommandFlags.None)
+                connection.SetReceiveTimeout(0);
+            return new TelnetCommand(this, connection, commandLine);
         }
 
         public IRemoteConsole CreateVirtualConsole()
