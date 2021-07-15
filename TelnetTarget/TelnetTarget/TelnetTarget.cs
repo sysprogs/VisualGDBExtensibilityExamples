@@ -78,9 +78,7 @@ namespace TelnetTarget
                     else
                     {
                         //Read and discard everything before the start marker. These lines to not belong to our command.
-                        _Connection.SetTimeout(1000);
                         string text = _Connection.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith(_BeginMarker + "\r\n"));
-                        _Connection.SetTimeout(0);
                     }
 
                     //We don't know for sure where the command output ends and our end marker starts. Hence we have to guess it and immediately output everything that does not
@@ -152,6 +150,11 @@ namespace TelnetTarget
                     _Connection.WriteText($"echo {_BeginMarker} ; {_CommandLine} ; echo ; echo {_EndMarker}$?E\r\n");
                 _ReadThread.Start();
             }
+
+            public void SetReceiveTimeout(int timeout) 
+            {
+                _Connection.SetReceiveTimeout(timeout);
+            }
         }
 
         class TelnetConsole : TelnetCommand, IRemoteConsole
@@ -202,7 +205,10 @@ namespace TelnetTarget
             if (!string.IsNullOrEmpty(directory))
                 commandLine = string.Format("cd \"{0}\" && {1}", directory, commandLine);
 
-            return new TelnetCommand(this, ProvideConnection(), commandLine);
+            var connection = ProvideConnection();
+            if ((flags & CommandFlags.EnableTerminalEmulation) != CommandFlags.None)
+                connection.SetReceiveTimeout(0);
+            return new TelnetCommand(this, connection, commandLine);
         }
 
         public IRemoteConsole CreateVirtualConsole()
@@ -211,10 +217,8 @@ namespace TelnetTarget
             string marker = $"com.sysprogs.tty:{Guid.NewGuid().ToString()}:";
             conn.WriteText($"echo {marker} ; tty ; sleep {int.MaxValue}\r\n");
 
-            conn.SetTimeout(2000);
             string prefix = conn.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("\r\n" + marker + "\r\n"));
             string tty = conn.ReadTextUntilEventAndHandleTelnetCommands(s => s.EndsWith("\r\n")).TrimEnd();
-            conn.SetTimeout(0);
 
             return new TelnetConsole(this, conn, tty);
         }
@@ -281,7 +285,7 @@ namespace TelnetTarget
                         done.Reset();
                         cmd.CommandExited += (s, code) => done.Set();
                         cmd.Start();
-                        done.WaitOne();
+                        done.WaitOne(_Parameters.Timeout);
                     }
                 }
 
@@ -289,17 +293,26 @@ namespace TelnetTarget
                 using (var cmd = CreateRemoteCommand($"base64 -d > \"{fullPath}\"", "", "", null, CommandFlags.None))
                 {
                     cmd.CommandExited += (s, code) => { done.Set(); exitCode = code ?? -1; };
+                    (cmd as TelnetCommand)?.SetReceiveTimeout(0);
                     done.Reset();
                     cmd.Start();
 
                     using (var stream = new MemoryStream())
                     {
                         file.CopyTo(stream, tempBuffer, file.Size);
-                        cmd.SendInput(Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks));
+                        var base64Data = Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks);
+                        using(var reader = new StringReader(base64Data)) 
+                        {
+                            int readed;
+                            var dataChunk = new char[65 * 1024];
+                            while((readed = reader.Read(dataChunk, 0, dataChunk.Length)) > 0 && !done.WaitOne(0)) 
+                                cmd.SendInput(new string(dataChunk, 0, readed));
+                        }
                     }
 
                     cmd.SendInput("\r\n\x04");
-                    done.WaitOne();
+                    done.WaitOne(_Parameters.Timeout);
+                    (cmd as TelnetCommand)?.SetReceiveTimeout(_Parameters.Timeout);
                 }
 
                 if (exitCode == 0)
@@ -358,7 +371,7 @@ namespace TelnetTarget
 
                 cmd.Start();
 
-                done.WaitOne();
+                done.WaitOne(_Parameters.Timeout);
                 cmd.FlushPendingOutputEvents();
 
                 var data = Convert.FromBase64String(builtOutput.ToString());
