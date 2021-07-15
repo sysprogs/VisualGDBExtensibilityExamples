@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using VisualGDBExtensibility;
@@ -147,7 +149,7 @@ namespace TelnetTarget
             public void Start()
             {
                 if (_CommandLine != null)
-                    _Connection.WriteText($"echo {_BeginMarker} ; {_CommandLine} ; echo ; echo {_EndMarker}$?E\r\n");
+                    _Connection.WriteText($"echo {_BeginMarker} ; {_CommandLine} ; echo -e \"\\n{_EndMarker}$?E\"\r\n");
                 _ReadThread.Start();
             }
 
@@ -384,6 +386,11 @@ namespace TelnetTarget
                 var data = Convert.FromBase64String(builtOutput.ToString());
                 fs.Write(data, 0, data.Length);
             }
+        }
+
+        public static void Register()
+        {
+            Registry.CurrentUser.CreateSubKey(@"Software\Sysprogs\VisualGDB\CustomTargetProviders").SetValue("telnet", Assembly.GetExecutingAssembly().Location);
         }
     }
 }

@@ -32,6 +32,8 @@ namespace TelnetDemo
     {
         static void Main(string[] args)
         {
+            TelnetTarget.TelnetTarget.Register();
+
             //TODO: change the parameters below to match your test configuration
             var target = new TelnetTarget.TelnetTarget(new TelnetTarget.TelnetParameters
             {
