@@ -26,7 +26,7 @@ namespace TelnetTarget
 
         TelnetConnection ProvideConnection()
         {
-            lock(_ConnectionPool)
+            lock (_ConnectionPool)
             {
                 if (_ConnectionPool.Count > 0)
                     return _ConnectionPool.Pop();
@@ -87,7 +87,7 @@ namespace TelnetTarget
 
                     bool atEndOfLine = true;
 
-                    for (;;)
+                    for (; ; )
                     {
                         string output = _Connection.ReadTextUntilEventAndHandleTelnetCommands(s => !atEndOfLine || (!_EndMarker.StartsWith(s) || s == _EndMarker));
                         if (output == _EndMarker)
@@ -151,7 +151,7 @@ namespace TelnetTarget
                 _ReadThread.Start();
             }
 
-            public void SetReceiveTimeout(int timeout) 
+            public void SetReceiveTimeout(int timeout)
             {
                 _Connection.SetReceiveTimeout(timeout);
             }
@@ -159,7 +159,7 @@ namespace TelnetTarget
 
         class TelnetConsole : TelnetCommand, IRemoteConsole
         {
-            public TelnetConsole(TelnetTarget telnetTarget, TelnetConnection telnetConnection, string path) 
+            public TelnetConsole(TelnetTarget telnetTarget, TelnetConnection telnetConnection, string path)
                 : base(telnetTarget, telnetConnection, null)
             {
                 Path = path;
@@ -168,7 +168,14 @@ namespace TelnetTarget
             public string Path { get; private set; }
         }
 
+
+
         public IRemoteCommand CreateRemoteCommand(string command, string args, string directory, EnvironmentVariableRecord[] environment, CommandFlags flags)
+        {
+            return DoCreateRemoteCommand(command, args, directory, environment, flags);
+        }
+
+        TelnetCommand DoCreateRemoteCommand(string command, string args, string directory, EnvironmentVariableRecord[] environment, CommandFlags flags)
         {
             string commandLine;
             if (command.StartsWith("${") && command.EndsWith("}") && !command.Contains(" "))
@@ -280,7 +287,7 @@ namespace TelnetTarget
                 string dir = fullPath.Substring(0, idx);
                 if (!createdPaths.Contains(dir))
                 {
-                    using (var cmd = CreateRemoteCommand($"mkdir -p \"{dir}\"", "", "", null, CommandFlags.None))
+                    using (var cmd = DoCreateRemoteCommand($"mkdir -p \"{dir}\"", "", "", null, CommandFlags.None))
                     {
                         done.Reset();
                         cmd.CommandExited += (s, code) => done.Set();
@@ -290,10 +297,10 @@ namespace TelnetTarget
                 }
 
                 int exitCode = -1;
-                using (var cmd = CreateRemoteCommand($"base64 -d > \"{fullPath}\"", "", "", null, CommandFlags.None))
+                using (var cmd = DoCreateRemoteCommand($"base64 -d > \"{fullPath}\"", "", "", null, CommandFlags.None))
                 {
                     cmd.CommandExited += (s, code) => { done.Set(); exitCode = code ?? -1; };
-                    (cmd as TelnetCommand)?.SetReceiveTimeout(0);
+                    cmd.SetReceiveTimeout(0);
                     done.Reset();
                     cmd.Start();
 
@@ -301,18 +308,18 @@ namespace TelnetTarget
                     {
                         file.CopyTo(stream, tempBuffer, file.Size);
                         var base64Data = Convert.ToBase64String(stream.ToArray(), Base64FormattingOptions.InsertLineBreaks);
-                        using(var reader = new StringReader(base64Data)) 
+                        using (var reader = new StringReader(base64Data))
                         {
-                            int readed;
+                            int doneNow;
                             var dataChunk = new char[65 * 1024];
-                            while((readed = reader.Read(dataChunk, 0, dataChunk.Length)) > 0 && !done.WaitOne(0)) 
-                                cmd.SendInput(new string(dataChunk, 0, readed));
+                            while ((doneNow = reader.Read(dataChunk, 0, dataChunk.Length)) > 0 && !done.WaitOne(0))
+                                cmd.SendInput(new string(dataChunk, 0, doneNow));
                         }
                     }
 
                     cmd.SendInput("\r\n\x04");
                     done.WaitOne(_Parameters.Timeout);
-                    (cmd as TelnetCommand)?.SetReceiveTimeout(_Parameters.Timeout);
+                    cmd.SetReceiveTimeout(_Parameters.Timeout);
                 }
 
                 if (exitCode == 0)
@@ -331,7 +338,7 @@ namespace TelnetTarget
 
         public void CreateAndRetrieveTarball(string targetDirectoryToPack, string localFileOnDisk, string tarMode, ILongOperationCallbacks callbacks)
         {
-            var cmd = CreateRemoteCommand($"cd \"{targetDirectoryToPack}\" && tar {tarMode} - * | base64", "", "", null, CommandFlags.None);
+            var cmd = DoCreateRemoteCommand($"cd \"{targetDirectoryToPack}\" && tar {tarMode} - * | base64", "", "", null, CommandFlags.None);
             ManualResetEvent done = new ManualResetEvent(false);
             StringBuilder builtOutput = new StringBuilder();
             var rgBase64 = new System.Text.RegularExpressions.Regex("^[A-Za-z0-9+/=\r\n]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -346,7 +353,7 @@ namespace TelnetTarget
                     {
                         var str = builtOutput.ToString();
                         int lineStart = 0, lineEnd;
-                        for (lineStart = 0; ;lineStart = lineEnd + 1)
+                        for (lineStart = 0; ; lineStart = lineEnd + 1)
                         {
                             lineEnd = str.IndexOf('\n', lineStart);
                             if (lineEnd == -1)

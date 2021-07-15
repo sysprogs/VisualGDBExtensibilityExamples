@@ -80,8 +80,8 @@ namespace TelnetTarget
         {
             StringBuilder result = new StringBuilder();
             var stopWatch = Stopwatch.StartNew();
-            bool noTimeout() => _Client.ReceiveTimeout > 0 ? stopWatch.ElapsedMilliseconds <= _Client.ReceiveTimeout : true;
-            while(noTimeout())
+            bool noTimeout() => _Client.ReceiveTimeout <= 0 || (stopWatch.ElapsedMilliseconds <= _Client.ReceiveTimeout);
+            while (noTimeout())
             {
                 byte ch = ReadByteOrThrow();
                 if (ch == (byte)SpecialTelnetCommand.IAC)
@@ -118,7 +118,7 @@ namespace TelnetTarget
                     break;
             }
             stopWatch.Stop();
-            if(!noTimeout())
+            if (!noTimeout())
                 throw new SocketException((int)SocketError.TimedOut);
             return result.ToString();
         }
@@ -147,9 +147,12 @@ namespace TelnetTarget
 
             var result = _Client.BeginConnect(parameters.Host, parameters.Port, null, null);
             bool success = result.AsyncWaitHandle.WaitOne(parameters.Timeout, true);
-            if(success) {
+            if (success)
+            {
                 _Client.EndConnect(result);
-            } else {
+            }
+            else
+            {
                 _Client.Close();
                 throw new SocketException((int)SocketError.TimedOut);
             }
