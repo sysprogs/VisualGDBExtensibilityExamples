@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<VisualGDBProjectSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <BuildType>LocalWin32</BuildType>
+  <AdditionalStartupCommands />
+  <Settings xsi:type="BasicBuildSettings">
+    <LaunchGDBSettings xsi:type="GDBLaunchParametersNewInstance">
+      <GDBExe>C:\MinGW\bin\gdb.exe</GDBExe>
+      <GDBEnvironment>
+        <Records>
+          <Record>
+            <VariableName>LANG</VariableName>
+            <Value>en_US.UTF-8</Value>
+          </Record>
+          <Record>
+            <VariableName>PATH</VariableName>
+            <Value>%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin</Value>
+          </Record>
+        </Records>
+      </GDBEnvironment>
+      <DebuggedProgram>$(TargetPath)</DebuggedProgram>
+      <UseGDBServer>false</UseGDBServer>
+      <GDBServerPort>2000</GDBServerPort>
+      <ProgramArguments />
+      <WorkingDirectory>$(BuildDir)</WorkingDirectory>
+    </LaunchGDBSettings>
+    <BuildCommand>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "C:\MinGW\msys\1.0\bin\make.exe" CONFIG=RELEASE</Arguments>
+      <WorkingDirectory>$(BuildDir)</WorkingDirectory>
+      <Environment>
+        <Records>
+          <Record>
+            <VariableName>LANG</VariableName>
+            <Value>en_US.UTF-8</Value>
+          </Record>
+          <Record>
+            <VariableName>PATH</VariableName>
+            <Value>%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin</Value>
+          </Record>
+        </Records>
+      </Environment>
+    </BuildCommand>
+    <CleanCommand>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "C:\MinGW\msys\1.0\bin\make.exe" clean CONFIG=RELEASE</Arguments>
+      <WorkingDirectory>$(BuildDir)</WorkingDirectory>
+      <Environment>
+        <Records>
+          <Record>
+            <VariableName>LANG</VariableName>
+            <Value>en_US.UTF-8</Value>
+          </Record>
+          <Record>
+            <VariableName>PATH</VariableName>
+            <Value>%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin</Value>
+          </Record>
+        </Records>
+      </Environment>
+    </CleanCommand>
+    <GenerateCtrlBreakInsteadOfCtrlC>false</GenerateCtrlBreakInsteadOfCtrlC>
+  </Settings>
+  <DefaultGDBSettings>
+    <FilterSpuriousStoppedNotifications>false</FilterSpuriousStoppedNotifications>
+    <ForceSingleThreadedMode>false</ForceSingleThreadedMode>
+    <PendingBreakpointsSupported>true</PendingBreakpointsSupported>
+    <DisableChildRanges>false</DisableChildRanges>
+    <UseAppleExtensions>false</UseAppleExtensions>
+    <CanAcceptCommandsWhileRunning>false</CanAcceptCommandsWhileRunning>
+    <MakeLogFile>false</MakeLogFile>
+    <IgnoreModuleEventsWhileStepping>true</IgnoreModuleEventsWhileStepping>
+    <UseRelativePathsOnly>false</UseRelativePathsOnly>
+    <ExitAction>None</ExitAction>
+    <Features>
+      <DisableAutoDetection>false</DisableAutoDetection>
+      <UseFrameParameter>false</UseFrameParameter>
+      <SimpleValuesFlagSupported>false</SimpleValuesFlagSupported>
+      <ListLocalsSupported>false</ListLocalsSupported>
+      <ByteLevelMemoryCommandsAvailable>false</ByteLevelMemoryCommandsAvailable>
+      <ThreadInfoSupported>false</ThreadInfoSupported>
+      <PendingBreakpointsSupported>false</PendingBreakpointsSupported>
+    </Features>
+    <DisableDisassembly>false</DisableDisassembly>
+    <ExamineMemoryWithXCommand>false</ExamineMemoryWithXCommand>
+  </DefaultGDBSettings>
+  <CustomSourceDirectories>
+    <Directories>
+      <SourceDirMappingEntry>
+        <RemoteDir>/mingw</RemoteDir>
+        <LocalDir>C:\MinGW</LocalDir>
+      </SourceDirMappingEntry>
+    </Directories>
+    <PathStyle>MinGWUnixSlash</PathStyle>
+    <LocalDirForAbsolutePaths />
+    <LocalDirForRelativePaths />
+  </CustomSourceDirectories>
+  <MainBuildDirectory>$(ProjectDir)</MainBuildDirectory>
+  <PathOfMainBinary>$(ConfigurationName)\VisualizerDemo.exe</PathOfMainBinary>
+  <ConfigurationName>Release</ConfigurationName>
+</VisualGDBProjectSettings>

@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyTypeVisualizer", "MyTypeVisualizer.csproj", "{F99C7DED-63E6-42FF-8859-0AD7F4D13ECB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F99C7DED-63E6-42FF-8859-0AD7F4D13ECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F99C7DED-63E6-42FF-8859-0AD7F4D13ECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F99C7DED-63E6-42FF-8859-0AD7F4D13ECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F99C7DED-63E6-42FF-8859-0AD7F4D13ECB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
