@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+	<VisualGDBExpressionsProjectFile>$(MSBuildThisFileDirectory)..\..\..\products\VisualGDB\VisualGDBExpressions\VisualGDBExpressions.csproj</VisualGDBExpressionsProjectFile>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(VisualGDBExpressionsProjectFile)')">
+    <ProjectReference Include="$(VisualGDBExpressionsProjectFile)" >
+      <Project>{AE47B8A4-0095-458F-901B-B5FC113E6700}</Project>
+      <Name>VisualGDBExpressions</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="(!Exists('$(VisualGDBExpressionsProjectFile)')) and ('$(VISUALGDB_DIR)' != '')">
+	<Reference Include="VisualGDBExpressions">
+	  <HintPath>$(VISUALGDB_DIR)\VisualGDBExpressions.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+  <ItemGroup Condition="(!Exists('$(VisualGDBExpressionsProjectFile)')) and ('$(VISUALGDB_DIR)' == '')">
+	<Reference Include="VisualGDBExpressions">
+	  <HintPath>C:\Program Files (x86)\Sysprogs\VisualGDB\VisualGDBExpressions.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+</Project>
