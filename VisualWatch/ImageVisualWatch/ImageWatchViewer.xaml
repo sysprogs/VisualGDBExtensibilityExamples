@@ -9,9 +9,33 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <x:Array Type="UIElement" x:Key="ToolbarButtons">
-                <Button Click="ZoomOut_Click" ToolTip="Reset zoom level">
-                    <Image Width="16" Height="16" Source="Icons\ZoomOut_16x.png"/>
-                </Button>
+                <ListBox ItemsSource="{Binding ViewModes}" SelectedItem="{Binding ViewMode}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Image Width="16" Height="16">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding}" Value="ZoomedOut">
+                                                <Setter Property="Source" Value="Icons\ZoomOut_16x.png"/>
+                                                <Setter Property="ToolTip" Value="Zoom out"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding}" Value="OneToOne">
+                                                <Setter Property="Source" Value="Icons\ZoomOut_16x.png"/>
+                                                <Setter Property="ToolTip" Value="Scale 1:1"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding}" Value="ScaleToFit">
+                                                <Setter Property="Source" Value="Icons\ZoomOut_16x.png"/>
+                                                <Setter Property="ToolTip" Value="Scale to fit"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
             </x:Array>
         </ResourceDictionary>
     </UserControl.Resources>

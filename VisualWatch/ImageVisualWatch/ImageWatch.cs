@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
@@ -17,6 +20,7 @@ namespace ImageVisualWatch
         public string UserFriendlyName => "Image";
 
         public Type SettingsType => typeof(ImageWatchSettings);
+        public Type PreferencesType => null;
 
         public IVisualExpressionConfigurator CreateConfigurator(IVisualExpressionParsingContext ctx) => new ImageWatchConfigurator(ctx);
 
@@ -43,7 +47,7 @@ namespace ImageVisualWatch
             settings.LastKnownWidth = width;
             settings.LastKnownHeight = height;
 
-            return new ParsedImage(pixelFormat.Translate(data, width, height), settings);
+            return new ParsedImage(pixelFormat.Translate(data, width, height), settings, ctx.RawExpression);
         }
 
         public int Probe(IVisualExpressionParsingContext ctx)
@@ -56,16 +60,19 @@ namespace ImageVisualWatch
     {
         private TranslatedImage _Image;
         private ImageWatchSettings _Settings;
+        public readonly string Name;
 
-        public ParsedImage(TranslatedImage image, ImageWatchSettings settings)
+        public ParsedImage(TranslatedImage image, ImageWatchSettings settings, string rawExpression)
         {
             _Image = image;
             _Settings = settings;
+            Name = rawExpression;
         }
 
-        public BitmapSource ToBitmapSource(PresentationSource ps) => BitmapSource.Create(_Settings.LastKnownWidth, _Settings.LastKnownHeight, 96 * ps.CompositionTarget.TransformToDevice.M11, 96 * ps.CompositionTarget.TransformToDevice.M22, _Image.Format, null, _Image.Data, _Image.Data.Length / _Settings.LastKnownHeight);
+        public BitmapSource ToBitmapSource(PresentationSource ps) => ToBitmapSource(ps.CompositionTarget.TransformToDevice.M11, ps.CompositionTarget.TransformToDevice.M22);
+        public BitmapSource ToBitmapSource(double xScale, double yScale) => BitmapSource.Create(_Settings.LastKnownWidth, _Settings.LastKnownHeight, 96 * xScale, 96 * yScale, _Image.Format, null, _Image.Data, _Image.Data.Length / _Settings.LastKnownHeight);
 
-        public bool CanExport => false;
+        public bool CanExport => true;
 
         public object EffectiveSettings => _Settings;
 
@@ -75,7 +82,19 @@ namespace ImageVisualWatch
 
         public void Export(IParsedVisualExpression[] allExpressions)
         {
-            throw new NotImplementedException();
+            foreach(var img in allExpressions.OfType<ParsedImage>())
+            {
+                var dlg = new SaveFileDialog { Title = $"Save '{img.Name}'", DefaultExt = ".png", AddExtension = true, Filter = "PNG files|*.png" };
+                if (dlg.ShowDialog() != true)
+                    return;
+
+                using (var fileStream = new FileStream(dlg.FileName, FileMode.Create))
+                {
+                    BitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(img.ToBitmapSource(1, 1)));
+                    encoder.Save(fileStream);
+                }
+            }
         }
     }
 

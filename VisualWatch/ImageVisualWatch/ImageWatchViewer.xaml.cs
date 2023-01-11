@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -19,7 +20,7 @@ namespace ImageVisualWatch
     /// <summary>
     /// Interaction logic for ImageWatchViewer.xaml
     /// </summary>
-    public partial class ImageWatchViewer : UserControl, IVisualExpressionViewer
+    public partial class ImageWatchViewer : UserControl, IVisualExpressionViewer, INotifyPropertyChanged
     {
         private ParsedImage _Image;
         private BitmapSource _Bitmap;
@@ -35,6 +36,8 @@ namespace ImageVisualWatch
         public bool SupportsMultipleExpressions => false;
 
         public event EventHandler<VisualExpressionErrorEventArgs> Error;
+        public event EventHandler PreferencesChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public IVisualizedExpression AddExpression(IParsedVisualExpression expr, bool isOutdated)
         {
@@ -92,7 +95,34 @@ namespace ImageVisualWatch
             var screenPos = (Vector)e.GetPosition(this) - new Vector(Math.Round(ActualWidth / 2), Math.Round(ActualHeight / 2));
 
             _ScreenOffset = screenPos - (screenPos - _ScreenOffset) * (_ZoomLevel / oldZoom);
+            ApplyReasonableViewportLimits();
+
+            if (_ZoomLevel != oldZoom)
+                ViewMode = ImageWatchViewMode.Custom;
+
             InvalidateVisual();
+        }
+
+        private void ApplyReasonableViewportLimits()
+        {
+            if (_Bitmap == null)
+                return;
+
+            //1. Prevent from zooming out beyond 1:1, unless it's needed to fit the entire image
+            double zoomLevelToFitImage = Math.Min(ActualWidth / _Bitmap.Width, ActualHeight / _Bitmap.Height);
+            double minimumReasonableZoomLevel = Math.Min(1, zoomLevelToFitImage);
+            
+            _ZoomLevel = Math.Max(_ZoomLevel, minimumReasonableZoomLevel);
+
+            //2. Prevent from panning the image too much
+            Vector scaledImageSize = new Vector(_Bitmap.Width, _Bitmap.Height) * _ZoomLevel;
+            Vector halfExcessiveImageSize = (scaledImageSize - new Vector(ActualWidth, ActualHeight)) / 2;
+            double maxHorizontalPan = Math.Max(0, halfExcessiveImageSize.X), maxVerticalPan = Math.Max(0, halfExcessiveImageSize.Y);
+
+            if (Math.Abs(_ScreenOffset.X) > maxHorizontalPan)
+                _ScreenOffset.X = Math.Sign(_ScreenOffset.X) * maxHorizontalPan;
+            if (Math.Abs(_ScreenOffset.Y) > maxVerticalPan)
+                _ScreenOffset.Y = Math.Sign(_ScreenOffset.Y) * maxVerticalPan;
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
@@ -101,7 +131,9 @@ namespace ImageVisualWatch
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 _ScreenOffset = _MoveBase + (Vector)e.GetPosition(this);
+                ApplyReasonableViewportLimits();
                 InvalidateVisual();
+                ViewMode = ImageWatchViewMode.Custom;
             }
         }
 
@@ -119,12 +151,48 @@ namespace ImageVisualWatch
             base.OnMouseUp(e);
         }
 
-        private void ZoomOut_Click(object sender, RoutedEventArgs e)
+        public ImageWatchViewMode[] ViewModes { get; } = new[] { ImageWatchViewMode.ZoomedOut, ImageWatchViewMode.OneToOne, ImageWatchViewMode.ScaleToFit, ImageWatchViewMode.Custom };
+
+
+        ImageWatchViewMode _ViewMode = ImageWatchViewMode.Custom;
+        public ImageWatchViewMode ViewMode
         {
-            _ZoomLevel = 1;
-            _ScreenOffset = default;
-            InvalidateVisual();
+            get => _ViewMode;
+            set
+            {
+                if (_ViewMode == value)
+                    return;
+                _ViewMode = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ViewMode)));
+
+                if (value != ImageWatchViewMode.Custom && _Bitmap != null)
+                {
+                    switch (value)
+                    {
+                        case ImageWatchViewMode.ZoomedOut:
+                            _ZoomLevel = 0; //The call below will correct it to the minimum reasonable level
+                            break;
+                        case ImageWatchViewMode.OneToOne:
+                            _ZoomLevel = 1;
+                            break;
+                        case ImageWatchViewMode.ScaleToFit:
+                            _ZoomLevel = Math.Min(ActualWidth / _Bitmap.Width, ActualHeight / _Bitmap.Height);
+                            break;
+                    }
+
+                    _ScreenOffset = default;
+                    ApplyReasonableViewportLimits();
+                    InvalidateVisual();
+                }
+            }
         }
     }
 
+    public enum ImageWatchViewMode
+    {
+        ZoomedOut,
+        OneToOne,
+        ScaleToFit,
+        Custom,
+    }
 }
