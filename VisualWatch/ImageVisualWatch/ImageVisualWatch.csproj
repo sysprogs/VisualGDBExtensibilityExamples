@@ -62,6 +62,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\ZoomOut_16x.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\VisualGDBExpressions.targets" />
   <Import Project="..\..\VisualGDBExtensibility.targets" />

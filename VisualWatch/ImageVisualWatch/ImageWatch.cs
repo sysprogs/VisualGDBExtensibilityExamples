@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using VisualGDBExpressions;
@@ -44,6 +45,11 @@ namespace ImageVisualWatch
 
             return new ParsedImage(pixelFormat.Translate(data, width, height), settings);
         }
+
+        public int Probe(IVisualExpressionParsingContext ctx)
+        {
+            return VisualExpressionConstants.DefaultProbeScore - 10;
+        }
     }
 
     class ParsedImage : IParsedVisualExpression
@@ -57,7 +63,7 @@ namespace ImageVisualWatch
             _Settings = settings;
         }
 
-        public BitmapSource ToBitmapSource() => BitmapSource.Create(_Settings.LastKnownWidth, _Settings.LastKnownHeight, 96, 96, _Image.Format, null, _Image.Data, _Image.Data.Length / _Settings.LastKnownHeight);
+        public BitmapSource ToBitmapSource(PresentationSource ps) => BitmapSource.Create(_Settings.LastKnownWidth, _Settings.LastKnownHeight, 96 * ps.CompositionTarget.TransformToDevice.M11, 96 * ps.CompositionTarget.TransformToDevice.M22, _Image.Format, null, _Image.Data, _Image.Data.Length / _Settings.LastKnownHeight);
 
         public bool CanExport => false;
 

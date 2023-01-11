@@ -6,6 +6,15 @@
              xmlns:local="clr-namespace:ImageVisualWatch"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <x:Array Type="UIElement" x:Key="ToolbarButtons">
+                <Button Click="ZoomOut_Click" ToolTip="Reset zoom level">
+                    <Image Width="16" Height="16" Source="Icons\ZoomOut_16x.png"/>
+                </Button>
+            </x:Array>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
             
     </Grid>
