@@ -108,7 +108,7 @@ namespace ImageVisualWatch
 
         public string ValidateSettings() => Controller.ValidateSettings();
 
-        public object GetFinalSettings()
+        public VisualExpressionSettingsBase GetFinalSettings()
         {
             return Controller.Settings;
         }

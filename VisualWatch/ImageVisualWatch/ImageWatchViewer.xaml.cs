@@ -25,9 +25,10 @@ namespace ImageVisualWatch
         private ParsedImage _Image;
         private BitmapSource _Bitmap;
 
-        public ImageWatchViewer()
+        public ImageWatchViewer(ImageWatchPreferences preferences)
         {
             InitializeComponent();
+            _Preferences = preferences;
         }
 
         public UIElement Control => this;
@@ -155,6 +156,8 @@ namespace ImageVisualWatch
 
 
         ImageWatchViewMode _ViewMode = ImageWatchViewMode.Custom;
+        private readonly ImageWatchPreferences _Preferences;
+
         public ImageWatchViewMode ViewMode
         {
             get => _ViewMode;

@@ -20,15 +20,16 @@ namespace ImageVisualWatch
         public string UserFriendlyName => "Image";
 
         public Type SettingsType => typeof(ImageWatchSettings);
-        public Type PreferencesType => null;
+        public Type PreferencesType => typeof(ImageWatchPreferences);
 
         public IVisualExpressionConfigurator CreateConfigurator(IVisualExpressionParsingContext ctx) => new ImageWatchConfigurator(ctx);
 
-        public IVisualExpressionViewer CreateViewer() => new ImageWatchViewer();
+        public IVisualExpressionViewer CreateViewer(VisualExpressionPreferencesBase preferences) => new ImageWatchViewer(preferences as ImageWatchPreferences);
 
         public IParsedVisualExpression ParseExpression(IVisualExpressionParsingContext ctx)
         {
-            var settings = ctx.PersistentSettings as ImageWatchSettings ?? new ImageWatchSettings();
+            var prefs = ctx.Preferences as ImageWatchPreferences;
+            var settings = ctx.PersistentSettings as ImageWatchSettings ?? prefs?.LookupSettings(ctx) ?? new ImageWatchSettings();
             if (string.IsNullOrEmpty(settings.WidthExpression) || string.IsNullOrEmpty(settings.HeightExpression))
                 settings = ctx.ShowModalSettingsDialog(new ImageWatchConfigurator(ctx)) as ImageWatchSettings ?? throw new OperationCanceledException();
 
@@ -46,6 +47,12 @@ namespace ImageVisualWatch
 
             settings.LastKnownWidth = width;
             settings.LastKnownHeight = height;
+
+            if (prefs != null)
+            {
+                prefs.Defaults.RemoveAll(x => x.VariableName == ctx.RawExpression);
+                prefs.Defaults.Add(new VariableDefaults { VariableName = ctx.RawExpression, TypeName = ctx.ResolvedType, Settings = settings });
+            }
 
             return new ParsedImage(pixelFormat.Translate(data, width, height), settings, ctx.RawExpression);
         }
@@ -74,7 +81,7 @@ namespace ImageVisualWatch
 
         public bool CanExport => true;
 
-        public object EffectiveSettings => _Settings;
+        public VisualExpressionSettingsBase EffectiveSettings => _Settings;
 
         public void Dispose()
         {
@@ -98,7 +105,7 @@ namespace ImageVisualWatch
         }
     }
 
-    public class ImageWatchSettings
+    public class ImageWatchSettings : VisualExpressionSettingsBase
     {
         public string WidthExpression, HeightExpression;
         public string FrameBufferExpression;
@@ -115,5 +122,24 @@ namespace ImageVisualWatch
         }
 
         public ImageWatchSettings Clone() => (ImageWatchSettings)MemberwiseClone();
+    }
+
+    public class ImageWatchPreferences : VisualExpressionPreferencesBase
+    {
+        public ImageWatchViewMode ViewMode;
+        public List<VariableDefaults> Defaults = new List<VariableDefaults>();
+
+        public ImageWatchSettings LookupSettings(IVisualExpressionParsingContext ctx)
+        {
+            return Defaults.FirstOrDefault(x => x.VariableName == ctx.RawExpression).Settings ?? Defaults.FirstOrDefault(x => x.TypeName == ctx.ResolvedType).Settings;
+        }
+    }
+
+    public class VariableDefaults
+    {
+        public string VariableName;
+        public string TypeName;
+
+        public ImageWatchSettings Settings;
     }
 }

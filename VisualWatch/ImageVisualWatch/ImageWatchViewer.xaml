@@ -21,12 +21,16 @@
                                                 <Setter Property="ToolTip" Value="Zoom out"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding}" Value="OneToOne">
-                                                <Setter Property="Source" Value="Icons\ZoomOut_16x.png"/>
+                                                <Setter Property="Source" Value="Icons\Image_16x.png"/>
                                                 <Setter Property="ToolTip" Value="Scale 1:1"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding}" Value="ScaleToFit">
-                                                <Setter Property="Source" Value="Icons\ZoomOut_16x.png"/>
+                                                <Setter Property="Source" Value="Icons\ImageScale_16x.png"/>
                                                 <Setter Property="ToolTip" Value="Scale to fit"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding}" Value="Custom">
+                                                <Setter Property="Source" Value="Icons\PanTool_16x.png"/>
+                                                <Setter Property="ToolTip" Value="Custom"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
