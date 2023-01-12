@@ -33,6 +33,7 @@ namespace ImageVisualWatch
 
         public class ControllerImpl : INotifyPropertyChanged
         {
+            private readonly ImageWatchPreferences _Preferences;
             public ImageWatchSettings Settings;
             private IVisualExpressionParsingContext _Context;
 
@@ -42,8 +43,13 @@ namespace ImageVisualWatch
            
             public ControllerImpl(IVisualExpressionParsingContext ctx)
             {
-                Settings = (ctx.PersistentSettings as ImageWatchSettings)?.Clone() ?? new ImageWatchSettings();
+                _Preferences = ctx.Preferences as ImageWatchPreferences;
+                Settings = (ctx.PersistentSettings as ImageWatchSettings)?.Clone();
+                if (Settings?.WidthExpression == null && Settings?.HeightExpression == null)
+                    Settings = _Preferences?.LookupSettings(ctx)?.Clone() ?? new ImageWatchSettings();
+
                 _Context = ctx;
+                PixelFormat = PixelFormats.FirstOrDefault(f => f.ID == _Preferences?.DefaultPixelFormat);
             }
 
             public string WidthExpression
@@ -66,6 +72,16 @@ namespace ImageVisualWatch
                 }
             }
 
+            public string FileSizeExpression
+            {
+                get => Settings.FileSizeExpression;
+                set
+                {
+                    Settings.FileSizeExpression = value;
+                    OnPropertyChanged(nameof(FileSizeExpression));
+                }
+            }
+
             public string FramebufferExpression
             {
                 get => Settings.FrameBufferExpression;
@@ -84,18 +100,35 @@ namespace ImageVisualWatch
                 set
                 {
                     Settings.PixelFormat = value?.ID;
+                    if (_Preferences != null)
+                        _Preferences.DefaultPixelFormat = value?.ID;
                     OnPropertyChanged(nameof(PixelFormat));
+                    OnPropertyChanged(nameof(DimensionsVisibility));
+                    OnPropertyChanged(nameof(SizeVisibility));
                 }
             }
 
+            public Visibility DimensionsVisibility => (Settings.PixelFormat == PixelFormatAdapters.EncodedFormatID) ? Visibility.Collapsed : Visibility.Visible;
+            public Visibility SizeVisibility => (Settings.PixelFormat == PixelFormatAdapters.EncodedFormatID) ? Visibility.Visible : Visibility.Collapsed;
+
             internal string ValidateSettings()
             {
-                if (((_Context.EvaluateSubexpression(WidthExpression ?? throw new Exception("Please specify the width expression")) as ExpressionValue.Integral)?.Value ?? 0) == 0)
-                    return "Could not evaluate width";
-                if (((_Context.EvaluateSubexpression(HeightExpression ?? throw new Exception("Please specify the height expression")) as ExpressionValue.Integral)?.Value ?? 0) == 0)
-                    return "Could not evaluate height";
-                if (PixelFormat == null)
-                    return "Please select a pixel format";
+                if (PixelFormat is PixelFormatAdapters.EncodedFormat)
+                {
+                    if (((_Context.EvaluateSubexpression(FileSizeExpression ?? throw new Exception("Please specify the file size expression")) as ExpressionValue.Integral)?.Value ?? 0) == 0)
+                        return "Could not evaluate width";
+                }
+                else
+                {
+                    if (((_Context.EvaluateSubexpression(WidthExpression ?? throw new Exception("Please specify the width expression")) as ExpressionValue.Integral)?.Value ?? 0) == 0)
+                        return "Could not evaluate width";
+                    if (((_Context.EvaluateSubexpression(HeightExpression ?? throw new Exception("Please specify the height expression")) as ExpressionValue.Integral)?.Value ?? 0) == 0)
+                        return "Could not evaluate height";
+
+                    if (PixelFormat == null)
+                        return "Please select a pixel format";
+                }
+
                 return null;
             }
         }

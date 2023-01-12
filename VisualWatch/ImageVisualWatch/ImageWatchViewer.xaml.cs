@@ -29,6 +29,8 @@ namespace ImageVisualWatch
         {
             InitializeComponent();
             _Preferences = preferences;
+            if (preferences != null)
+                ViewMode = preferences.ViewMode;
         }
 
         public UIElement Control => this;
@@ -91,7 +93,6 @@ namespace ImageVisualWatch
             var oldZoom = _ZoomLevel;
             double scaling = Math.Pow(0.9, (double)e.Delta / 100);
             _ZoomLevel /= scaling;
-            _ZoomLevel = Math.Max(_ZoomLevel, 1);
 
             var screenPos = (Vector)e.GetPosition(this) - new Vector(Math.Round(ActualWidth / 2), Math.Round(ActualHeight / 2));
 
@@ -184,6 +185,9 @@ namespace ImageVisualWatch
                     }
 
                     _ScreenOffset = default;
+                    if (_Preferences != null)
+                        _Preferences.ViewMode = value;
+                    PreferencesChanged?.Invoke(this, EventArgs.Empty);
                     ApplyReasonableViewportLimits();
                     InvalidateVisual();
                 }

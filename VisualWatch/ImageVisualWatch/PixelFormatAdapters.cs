@@ -47,6 +47,19 @@ namespace ImageVisualWatch
             }
         }
 
+        public const string EncodedFormatID = "com.sysprogs.imagewatch.encoded";
+
+        public class EncodedFormat : IPixelFormatAdapter
+        {
+            public string ID => EncodedFormatID;
+
+            public string UserFriendlyName => "PNG/JPG";
+
+            public int GetBufferSizeInBytes(int width, int height) => throw new NotSupportedException();
+
+            public TranslatedImage Translate(byte[] rawBuffer, int width, int height) => throw new NotSupportedException();
+        }
+
         public static IPixelFormatAdapter[] AllFormats { get; } = new IPixelFormatAdapter[]
         {
             //new BGR24(),
@@ -54,6 +67,7 @@ namespace ImageVisualWatch
             new WPFFormatWrapper(PixelFormats.Bgr24),
             new WPFFormatWrapper(PixelFormats.Rgb24),
             new WPFFormatWrapper(PixelFormats.Gray8),
+            new EncodedFormat(),
         };
     }
 
