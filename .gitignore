@@ -1,3 +1,6 @@
 bin
 obj
 .vs
+build
+.visualgdb
+*.user
