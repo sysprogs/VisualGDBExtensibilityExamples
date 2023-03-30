@@ -6,11 +6,11 @@ namespace SampleLiveWatchExtension
     {
         ILiveWatchNode[] _Nodes;
 
-        public SampleLiveWatchNodeSource()
+        public SampleLiveWatchNodeSource(ILiveWatchEngine engine)
         {
             _Nodes = new ILiveWatchNode[]
             {
-                new CounterListNode()
+                new CounterListNode(engine)
             };
         }
 

@@ -14,7 +14,7 @@ namespace SampleLiveWatchExtension
         public LiveWatchNodeIcon Icon => LiveWatchNodeIcon.Graph;
         public ILiveWatchNodeSource CreateNodeSource(ILiveWatchEngine engine)
         {
-            return new SampleLiveWatchNodeSource();
+            return new SampleLiveWatchNodeSource(engine);
         }
     }
 }

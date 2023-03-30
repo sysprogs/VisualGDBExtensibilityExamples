@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using VisualGDBExtensibility.LiveWatch;
 
 namespace SampleLiveWatchExtension
@@ -7,17 +8,28 @@ namespace SampleLiveWatchExtension
     {
         public string UniqueID => "counters$";
         public string RawType => "Counter List";
-        public string Name => "Counter";
+        public string Name => "Counters";
         public LiveWatchCapabilities Capabilities { get; } = LiveWatchCapabilities.CanHaveChildren;
         public LiveWatchPhysicalLocation Location => default;
 
-        public void Dispose()
+        ILiveWatchEngine _Engine;
+        public CounterListNode(ILiveWatchEngine engine)
         {
+            _Engine = engine;
         }
 
         public ILiveWatchNode[] GetChildren(LiveWatchChildrenRequestReason reason)
         {
-            return null;
+            var result = new List<ILiveWatchNode>();
+            var counter = _Engine.Symbols.LookupVariable("g_Counter");
+            if (counter != null)
+                result.Add(new CounterNode(_Engine, counter));
+
+            return result.ToArray();
+        }
+
+        public void Dispose()
+        {
         }
 
         public void SetSuspendState(LiveWatchNodeSuspendState state)
