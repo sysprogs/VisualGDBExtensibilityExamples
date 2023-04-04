@@ -1,5 +1,6 @@
 #include <stm32f4xx_hal.h>
 #include <stm32_hal_legacy.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -12,8 +13,12 @@ void SysTick_Handler(void)
 
 struct SampleCounter
 {
+    const char *Name;
     int Count;
-} g_Counter;
+    SampleCounter *Next;
+};
+
+SampleCounter g_Counter1, g_Counter2;
 
 int main(void)
 {
@@ -28,10 +33,22 @@ int main(void)
 	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStructure.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
+    g_Counter1.Name = "Test counter #1";
+    g_Counter2.Name = "Test counter #2";
+    
+    g_Counter1.Next = (SampleCounter *)malloc(sizeof(SampleCounter));
+    g_Counter1.Next->Name = "Dynamic counter #1";
+
+    g_Counter1.Next->Next = (SampleCounter *)malloc(sizeof(SampleCounter));
+    g_Counter1.Next->Next->Name = "Dynamic counter #2";
+    
+    g_Counter1.Next->Next->Next = NULL;
+    
 
 	for (;;)
 	{
-    	g_Counter.Count++;
+    	g_Counter1.Count++;
+    	g_Counter2.Count+=2;
     	
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
 		HAL_Delay(500);

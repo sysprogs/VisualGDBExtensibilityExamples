@@ -14,6 +14,8 @@ namespace SampleLiveWatchExtension
         private IPinnedVariable _Counter;
         private ILiveVariable _NameVar;
 
+        public ulong Address => _Counter.Address;
+
         public CounterNode(ILiveWatchEngine engine, IPinnedVariable counter)
         {
             _Engine = engine;
