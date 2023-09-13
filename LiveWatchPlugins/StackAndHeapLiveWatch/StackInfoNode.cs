@@ -34,19 +34,19 @@ namespace StackAndHeapLiveWatch
 
             try
             {
-                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackTop") ?? engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit") ?? throw new Exception("No '_estack' or '__StackLimit' symbol found.");
+                var endOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("_estack") ?? engine.Symbols.TryLookupRawSymbolInfo("__StackTop") ?? engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Limit") ?? engine.Symbols.TryLookupRawSymbolInfo("__initial_sp") ?? throw new Exception("No '_estack' or '__StackTop' symbol found.");
                 _StackEnd = endOfStackVariable.Address;
 
-                var reservedForStackVariable = engine.Symbols.LookupVariable("ReservedForStack");
+                var fixedStackSize = engine.Symbols.LookupVariable("ReservedForStack")?.Size ?? engine.Symbols.TryLookupRawSymbolInfo("Stack_Mem")?.Size ?? 0;
                 if (endOfStackVariable.Name == "CSTACK$$Limit")
                 {
                     var startOfStackVariable = engine.Symbols.TryLookupRawSymbolInfo("CSTACK$$Base") ?? throw new Exception("No 'CSTACK$$Base' symbol found.");
                     _StackStart = startOfStackVariable.Address;
                 }
-                else if (reservedForStackVariable != null && reservedForStackVariable.Size != 0)
+                else if (fixedStackSize != 0)
                 {
                     //Stack size is fixed. No need to monitor outside it.
-                    _StackStart = _StackEnd - (uint)reservedForStackVariable.Size;
+                    _StackStart = _StackEnd - (uint)fixedStackSize;
                 }
                 else
                 {
