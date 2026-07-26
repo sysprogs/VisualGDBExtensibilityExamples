@@ -1,0 +1,3 @@
+<ItemGroup>
+  <ProjectReference Include="..\..\..\..\..\products\VisualGDB\VisualGDBExpressions\VisualGDBExpressions-core.csproj" />
+</ItemGroup>

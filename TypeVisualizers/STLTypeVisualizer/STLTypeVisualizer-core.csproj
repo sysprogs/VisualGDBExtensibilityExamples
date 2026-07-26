@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup>
+	<TargetFramework>net8.0</TargetFramework>
+	<ImplicitUsings>disable</ImplicitUsings>
+	<Nullable>disable</Nullable>
+	<BaseOutputPath>core\bin</BaseOutputPath>
+	<BaseIntermediateOutputPath>core\obj</BaseIntermediateOutputPath>
+	<AssemblyName>STLTypeVisualizer</AssemblyName>
+	<RootNamespace>STLTypeVisualizer</RootNamespace>
+</PropertyGroup>
+<ItemGroup>
+	<Compile Remove="obj\**" />
+	<Compile Remove="bin\**" />
+	<None Remove="obj\**" />
+	<None Remove="bin\**" />
+</ItemGroup>
+<ItemGroup>
+	<Compile Remove="Properties\AssemblyInfo.cs" />
+</ItemGroup>
+<ItemGroup>
+  <ProjectReference Include="..\..\..\..\..\products\VisualGDB\VisualGDBExpressions\VisualGDBExpressions-core.csproj" />
+</ItemGroup>
+<ItemGroup>
+</ItemGroup>
+</Project>
